@@ -1,76 +1,84 @@
-import { ethers, providers } from "ethers";
-import Web3Modal from "web3modal";
-import WalletConnectProvider from "@walletconnect/web3-provider";
-import { CoinbaseWalletSDK } from "@coinbase/wallet-sdk";
+// // import './init'
+// import { ethers, providers } from "ethers";
+// import Web3Modal from "web3modal";
+// // // import WalletConnectProvider from "@walletconnect/web3-provider";
+// import { CoinbaseWalletSDK } from "@coinbase/wallet-sdk";
 
-import { useState, useEffect } from "react";
+// import { useState, useEffect, useContext } from "react";
+// import { TransactionContext } from "../context/TransactionContext";
 
-export default function ConnectWallet(props) {
-  const [web3Modal, setWeb3Modal] = useState(null);
-  const [address, setAddress] = useState("");
+// export default function ConnectWallet(props) {
 
-  useEffect(() => {
-    // initiate web3modal
+//   const {
+//    setConnectWalletFunc,
+//    setAddress,
+//   } = useContext(TransactionContext);
 
-    const providerOptions = {
-      walletconnect: {
-        package: WalletConnectProvider, // required
-        options: {
-          appName: "YTK",
-          infuraId: "6a1c468d4a80436a925522496e75c3ba",
-        },
-      },
-      coinbasewallet: {
-        package: CoinbaseWalletSDK,
-        options: {
-          appName: "YTK",
-          infuraId: {
-            3: "https://mainnet.infura.io/v3/1b9e4df8958d4f26996cf7ba95646d54",
-          },
-        },
-      },
-    };
-    const newWeb3Modal = new Web3Modal({
-      cacheProvider: true, // very important
-      network: "mainnet",
-      providerOptions,
-    });
-    setWeb3Modal(newWeb3Modal);
-  }, []);
+//   const [web3Modal, setWeb3Modal] = useState(null);
+//   // const [address, setAddress] = useState("");
 
-  useEffect(() => {
-    // connect automatically and without a popup if user is already connected
-    if (web3Modal && web3Modal.cachedProvider) {
-      connectWallet();
-    }
-  }, [web3Modal]);
+//       // initiate web3modal
 
-  async function connectWallet() {
-    const provider = await web3Modal.connect();
+//   const providerOptions = {
+//     // walletconnect: {
+//     //   package: WalletConnectProvider, // required
+//     //   options: {
+//     //     appName: "YTK",
+//     //     infuraId: "6a1c468d4a80436a925522496e75c3ba",
+//     //   },
+//     // },
+//     coinbasewallet: {
+//       package: CoinbaseWalletSDK,
+//       options: {
+//         appName: "YTK",
+//         infuraId: {
+//           3: "https://mainnet.infura.io/v3/1b9e4df8958d4f26996cf7ba95646d54",
+//         },
+//       },
+//     },
+//   };
+//   const newWeb3Modal = new Web3Modal({
+//     cacheProvider: true, // very important
+//     network: "mainnet",
+//     providerOptions,
+//   });
 
-    addListeners(provider);
+//   setWeb3Modal(newWeb3Modal);
 
-    const ethersProvider = new providers.Web3Provider(provider);
-    const userAddress = await ethersProvider.getSigner().getAddress();
-    setAddress(userAddress);
-  }
+//   useEffect(() => {
+//     // connect automatically and without a popup if user is already connected
+//     if (web3Modal && web3Modal.cachedProvider) {
+//       connectWallet();
+//     }
+//   }, [web3Modal]);
 
-  async function addListeners(web3ModalProvider) {
-    web3ModalProvider.on("accountsChanged", (accounts) => {
-      window.location.reload();
-    });
+//   async function connectWallet() {
+//     const provider = await web3Modal.connect();
 
-    // Subscribe to chainId change
-    web3ModalProvider.on("chainChanged", (chainId) => {
-      window.location.reload();
-    });
-  }
+//     addListeners(provider);
 
-  return {address, connectWallet}
+//     const ethersProvider = new providers.Web3Provider(provider);
+//     const userAddress = await ethersProvider.getSigner().getAddress();
+//     setAddress(userAddress);
 
-    // <div>
-    //   <button onClick={connectWallet}>Connect wallet</button>
-    //   <p>{address}</p>
-    // </div>
-  
-}
+//   }
+
+//   async function addListeners(web3ModalProvider) {
+//     web3ModalProvider.on("accountsChanged", (accounts) => {
+//       window.location.reload();
+//     });
+
+//     // Subscribe to chainId change
+//     web3ModalProvider.on("chainChanged", (chainId) => {
+//       window.location.reload();
+//     });
+//   }
+
+//   setConnectWalletFunc(connectWallet)
+//   setAddress(connectWallet)
+//    return { address, connectWallet };
+// }
+
+
+
+

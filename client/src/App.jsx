@@ -1,7 +1,9 @@
+import './init'
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
 import { Footer, Navbar, Services, Transactions, Welcome } from "./components";
+import YTKExchange from './components/YTKExchange';
 
 function App() {
   return (
@@ -11,6 +13,7 @@ function App() {
         <Welcome />
       </div>
       <Services />
+      <YTKExchange />
       <Transactions />
       <Footer />
     </div>

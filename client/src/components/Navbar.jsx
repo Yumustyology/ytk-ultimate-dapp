@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { HiMenuAlt4 } from "react-icons/hi";
 import { AiOutlineClose } from "react-icons/ai";
 import logo from "../../images/logo.png";
@@ -7,6 +7,9 @@ import { BsFillBasketFill, BsShop, BsCurrencyExchange } from "react-icons/bs";
 import { GiShop } from "react-icons/gi";
 import { FaPiggyBank, FaGamepad } from "react-icons/fa";
 import { RiExchangeDollarLine } from "react-icons/ri";
+import { TransactionContext } from "../context/TransactionContext";
+import { shortenAddress } from "../utils/shortenAddress";
+
 const NavbarItem = ({ title, classProps, icon }) => {
   return (
     <li className={`mx-4 cursor-pointer flex  items-center ${classProps}`}>
@@ -16,6 +19,15 @@ const NavbarItem = ({ title, classProps, icon }) => {
   );
 };
 const Navbar = () => {
+
+  const {
+    connectWallet,
+    currentAccount,
+    formData,
+    sendTransaction,
+    disconnectWallet,
+    isLoading,
+  } = useContext(TransactionContext);
   const [toggleMenu, setToggleMenu] = useState(false);
   return (
     <nav className="w-full flex md:justify-center justify-between items-center p-4">
@@ -69,9 +81,22 @@ const Navbar = () => {
         ].map((item, index) => (
           <NavbarItem key={item + index} title={item.title} icon={item.icon} />
         ))}
-        <li className="bg-[#2952e3] py-2 px-7 mx-4 rounded-full cursor-pointer hover:bg-[#2546bd]">
-          Connect Wallet
-        </li>
+
+        {currentAccount ? (
+          <li
+            className="bg-[#2952e3] py-2 px-7 mx-4 rounded-full cursor-pointer hover:bg-[#2546bd]"
+            onClick={disconnectWallet}
+          >
+            {shortenAddress(currentAccount)}
+          </li>
+        ) : (
+          <li
+            className="bg-[#2952e3] py-2 px-7 mx-4 rounded-full cursor-pointer hover:bg-[#2546bd]"
+            onClick={connectWallet && connectWallet}
+          >
+            Connect Wallet
+          </li>
+        )}
       </ul>
       <div className="flex relative">
         {toggleMenu ? (

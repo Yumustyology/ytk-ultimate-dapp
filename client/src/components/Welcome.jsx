@@ -36,8 +36,6 @@ const Input = ({ placeholder, name, type, value, handleChange }) =>
   );
 
 const Welcome = () => {
-  // let currentAccount = ""
-
   const changeCurrency = (e) => {
     setCurrency(e.target.value);
   };
@@ -47,17 +45,18 @@ const Welcome = () => {
     formData,
     sendTransaction,
     handleChange,
-    isLoading,
+    loading,
+    // ethBal
   } = useContext(TransactionContext);
 
   const [balVisible, setBalVisible] = useState(false);
   const [currency, setCurrency] = useState("eth");
 
   const handleSubmit = (e) => {
-    // const { addressTo, amount, keyword, message } = formData;
-    // e.preventDefault(); //Prevents reload after sending the form
-    // if (!addressTo | !amount | !keyword | !message) return;
-    // sendTransaction();
+    const { addressTo, amount, message } = formData;
+    e.preventDefault(); //Prevents reload after sending the form
+    if (!addressTo | !amount  | !message) return;
+    sendTransaction();
   };
 
   return (
@@ -72,7 +71,7 @@ const Welcome = () => {
             easily here. <br />
             And do a lot more activities on the blockchain.
           </p>
-          {currentAccount && (
+          {!currentAccount && (
             <button
               type="button"
               onClick={connectWallet}
@@ -98,10 +97,10 @@ const Welcome = () => {
         </div>
 
         <div className="flex flex-col flex-1 items-center justify-start w-full mf:mt-0 mt-10">
-          <div className="p-3 justify-end items-start flex-col rounded-xl h-40 sm:w-72 w-full my-5 eth-card white-glassmorphism">
+          <div className="p-3 justify-end items-start flex-col rounded-xl h-44 sm:w-96 w-full my-5 eth-card white-glassmorphism">
             <div className="flex justify-between flex-col w-full h-full">
               <div className="flex justify-between items-start">
-                <div className="w-10 h-10 rounded-full border-2 border-white flex justify-center items-center">
+                <div className="w-10 h-10 rounded-full border-2 border-white flex justify-center items-center cursor-pointer">
                   {currency === "ytk" ? (
                     <HiCurrencyYen fontSize={21} color="#fff" />
                   ) : (
@@ -122,11 +121,11 @@ const Welcome = () => {
               </div>
               <div>
                 <p className="text-white font-light text-sm">
-                  {shortenAddress(currentAccount)}
+                  {currentAccount ? shortenAddress(currentAccount) : 'connect your wallet...'}
                 </p>
                 <div className="flex items-center">
                   <div className="text-white font-semibold text-lg mt-1 flex">
-                    Balance: {balVisible ? "30eth" : "****"} &nbsp;
+                    Balance: {balVisible ? ethBal : "****"} &nbsp;
                   </div>
                   <div
                     onClick={() => setBalVisible(!balVisible)}
@@ -173,9 +172,10 @@ const Welcome = () => {
 
             <div className="h-[1px] w-full bg-gray-400 my-2" />
 
-            {isLoading ? (
+            {loading ? (
               <Loader />
-            ) : false === true ? (
+            ) : currentAccount ? (
+            
               <button
                 type="button"
                 onClick={handleSubmit}
@@ -183,10 +183,11 @@ const Welcome = () => {
               >
                 Send Now
               </button>
+              
             ) : (
               <button
                 type="button"
-                // onClick={handleSubmit}
+                onClick={connectWallet}
                 className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] rounded-full cursor-pointer"
               >
                 Connect Wallet
