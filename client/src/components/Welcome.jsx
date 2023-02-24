@@ -46,7 +46,6 @@ const Welcome = () => {
     sendTransaction,
     handleChange,
     loading,
-    // ethBal
   } = useContext(TransactionContext);
 
   const [balVisible, setBalVisible] = useState(false);
@@ -55,7 +54,7 @@ const Welcome = () => {
   const handleSubmit = (e) => {
     const { addressTo, amount, message } = formData;
     e.preventDefault(); //Prevents reload after sending the form
-    if (!addressTo | !amount  | !message) return;
+    if (!addressTo | !amount | !message) return;
     sendTransaction();
   };
 
@@ -87,8 +86,17 @@ const Welcome = () => {
             <div className={`sm:rounded-none rounded-tr-2xl ${commonStyles}`}>
               Security
             </div>
-            <div className={`sm:rounded-tr-2xl ${commonStyles}`}>ERC20</div>
-            <div className={`sm:rounded-bl-2xl ${commonStyles}`}>Exchange</div>
+            <div className={`sm:rounded-tr-2xl ${commonStyles}`}>Stake</div>
+            <div className={`${commonStyles}`}>
+              ERC20
+            </div>
+            <div className={`sm:rounded-none  ${commonStyles}`}>
+            Ecommerce
+            </div>
+            <div className={` ${commonStyles}`}>Ethereum</div>
+            <div className={`sm:rounded-bl-2xl  ${commonStyles}`}>
+              DEFI Exchange
+            </div>
             <div className={`sm:rounded-none rounded-bl-2xl ${commonStyles}`}>
               Game
             </div>
@@ -121,7 +129,9 @@ const Welcome = () => {
               </div>
               <div>
                 <p className="text-white font-light text-sm">
-                  {currentAccount ? shortenAddress(currentAccount) : 'connect your wallet...'}
+                  {currentAccount
+                    ? shortenAddress(currentAccount)
+                    : "connect your wallet..."}
                 </p>
                 <div className="flex items-center">
                   <div className="text-white font-semibold text-lg mt-1 flex">
@@ -175,7 +185,6 @@ const Welcome = () => {
             {loading ? (
               <Loader />
             ) : currentAccount ? (
-            
               <button
                 type="button"
                 onClick={handleSubmit}
@@ -183,7 +192,6 @@ const Welcome = () => {
               >
                 Send Now
               </button>
-              
             ) : (
               <button
                 type="button"

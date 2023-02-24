@@ -55,13 +55,13 @@ const Navbar = () => {
             ),
           },
           {
-            title: "DEFI Game",
+            title: "Games",
             icon: (
               <FaGamepad fontSize={20} className="text-white  cursor-pointer" />
             ),
           },
           {
-            title: "DEFI Exchange",
+            title: "Exchange",
             icon: (
               <RiExchangeDollarLine
                 fontSize={20}
