@@ -46,6 +46,8 @@ const Welcome = () => {
     sendTransaction,
     handleChange,
     loading,
+    ethBal,
+    ytkBal
   } = useContext(TransactionContext);
 
   const [balVisible, setBalVisible] = useState(false);
@@ -57,6 +59,12 @@ const Welcome = () => {
     if (!addressTo | !amount | !message) return;
     sendTransaction();
   };
+
+  console.log(typeof(ethBal));
+
+    let etherBal = parseFloat(ethBal);
+    let YtkBal = parseFloat(ytkBal)
+// let n = num.toFixed(2);
 
   return (
     <div className="flex w-full justify-center items-center md:flex-col">
@@ -135,7 +143,7 @@ const Welcome = () => {
                 </p>
                 <div className="flex items-center">
                   <div className="text-white font-semibold text-lg mt-1 flex">
-                    Balance: {balVisible ? ethBal : "****"} &nbsp;
+                    Balance: {balVisible ? currency === 'eth' ?  etherBal.toFixed(4) +' eth': YtkBal.toFixed(4) + ' ytk': "****"} &nbsp;
                   </div>
                   <div
                     onClick={() => setBalVisible(!balVisible)}

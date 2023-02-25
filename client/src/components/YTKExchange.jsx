@@ -9,6 +9,7 @@ import {
   YTKExchangeAbi,
   ytkContractAddress,
   ytkExchangeContractAddress,
+  
 } from "../utils/constants";
 import { ethers } from "ethers";
 
@@ -57,62 +58,51 @@ const YTKExchange = () => {
   const [exchangeLoading, setExchangeLoading] = useState(false);
   const [exchangeTab, setExchangeTab] = useState("eth");
   const [provider, setProvider] = useState(null);
-  const { currentAccount } = useContext(TransactionContext);
+  const [ytkBalance, setYTKBalance] = useState(0);
+  const { currentAccount, getYTKContract, getYTKExchangeContract } =
+    useContext(TransactionContext);
+
+    
 
   let { ethereum } = window;
 
-  const getYTKExchangeContract = () => {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    setProvider(provider);
-    const signers = provider.getSigner();
-    return new ethers.Contract(
-      ytkExchangeContractAddress,
-      YTKExchangeAbi,
-      signers
-    );
-  };
-
-
-  const getYTKContract = () => {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    setProvider(provider);
-    const signers = provider.getSigner();
-    return new ethers.Contract(
-      ytkContractAddress,
-      YTKAbi,
-      signers
-    );
-  };
-
+  let exchangeContract = getYTKExchangeContract()
+  let ytkContract = getYTKContract()
 
   const buyYTK = async (ethAmount, ytkAmount) => {
     if (!ethAmount | !ytkAmount) return;
     setExchangeLoading(true);
     console.log("wanna buy ytk ?");
-
-    console.log(getYTKExchangeContract);
-
-    const hashed =await getYTKExchangeContract.buyTokens({
+    const hashed = await exchangeContract.buyTokens({
       from: currentAccount,
       value: ethers.utils.parseEther(ethAmount),
+      gasLimit: 3e7,
     });
 
     console.log("hashed ", hashed);
-  setExchangeLoading(false)
+    setExchangeLoading(false);
   };
 
-  const sellYTK =async (ethAmount, ytkAmount) => {
+  const sellYTK = async (ethAmount, ytkAmount) => {
     if (!ethAmount | !ytkAmount) return;
     setExchangeLoading(true);
+
     console.log("wanna sell ytk ?");
-    const hashed = await getYTKContract.approve(ytkExchangeContractAddress, ytkAmount).sendTransaction({ from: currentAccount })
-    const sellYTKHashed = await  getYTKExchangeContract.sellTokens(tokenAmount).send({ from: this.state.account })
-  setExchangeLoading(false)
+    const hashed = await ytkContract
+      .approve(ytkExchangeContractAddress, ytkAmount)
+      .sendTransaction({ from: currentAccount });
+    const sellYTKHashed = await exchangeContract
+      .sellTokens(ytkAmount)
+      .send({ from: this.state.account });
+    setExchangeLoading(false);
+    console.log(hashed, sellYTKHashed);
   };
 
-  const setExchangeTabFunc = (tab) => {
+  const setExchangeTabFunc = async (tab) => {
     setExchangeTab(tab);
     window.localStorage.setItem("exchangeTab", tab);
+    let ytkBalance = await ytkContract.balanceOf(currentAddress);
+    setYTKBalance(ytkBalance);
   };
 
   useEffect(() => {

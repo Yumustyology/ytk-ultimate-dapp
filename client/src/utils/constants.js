@@ -1,6 +1,7 @@
 import abi from '../abi/TransactionsAbi.json'
 import YTKContractAbi from '../abi/yungToken.json'
 import YTKExchangeContractAbi from '../abi/YTKExchange.json'
+
 export const transactionContractAddress = "0xC3039940eFA6d87019F88D1532FD5838077fb1c1"
 export const TransactionsAbi = abi.abi
 export const YTKAbi = YTKContractAbi.abi

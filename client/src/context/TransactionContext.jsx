@@ -3,6 +3,10 @@ import React, { useState, createContext, useEffect } from "react";
 import {
   transactionContractAddress,
   TransactionsAbi,
+  YTKAbi,
+  YTKExchangeAbi,
+  ytkContractAddress,
+  ytkExchangeContractAddress,
 } from "../utils/constants";
 import { ethers, providers } from "ethers";
 import Web3Modal from "web3modal";
@@ -16,6 +20,7 @@ const TransactionContextProvider = ({ children }) => {
     localStorage.getItem("transactionCount")
   );
   const [ethBal, setEthBal] = useState(0);
+  const [ytkBal, setYTKBal] = useState(0);
   const [provider, setProvider] = useState(null);
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -59,7 +64,7 @@ const TransactionContextProvider = ({ children }) => {
 
   const getEthereumContract = () => {
     const provider = new ethers.providers.Web3Provider(ethereum);
-    setProvider(provider);
+    // setProvider(provider);
     const signers = provider.getSigner();
     return new ethers.Contract(
       transactionContractAddress,
@@ -68,7 +73,29 @@ const TransactionContextProvider = ({ children }) => {
     );
   };
 
-  // console.log(getEthereumContract);
+  const getYTKExchangeContract = () => {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    // setProvider(provider);
+    const signers = provider.getSigner();
+
+    console.log(new ethers.Contract(ytkContractAddress, YTKAbi, signers));
+    return new ethers.Contract(
+      ytkExchangeContractAddress,
+      YTKExchangeAbi,
+      signers
+    );
+  };
+
+  const getYTKContract = () => {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    // setProvider(provider);
+    const signers = provider.getSigner();
+    return new ethers.Contract(ytkContractAddress, YTKAbi, signers);
+  };
+
+
+
+
 
   const getAllTransactions = async () => {
     try {
@@ -112,8 +139,6 @@ const TransactionContextProvider = ({ children }) => {
           "transactionCount",
           currentTransactionCount
         );
-
-        // console.log("currentTransactionCount ",currentTransactionCount);
       }
     } catch (error) {
       console.log(error);
@@ -126,15 +151,18 @@ const TransactionContextProvider = ({ children }) => {
     const provider = await web3Modal.connect();
 
     addListeners(provider);
-    setProvider(provider);
-
     const ethersProvider = new providers.Web3Provider(provider);
     const userAddress = await ethersProvider.getSigner().getAddress();
     setCurrentAccount(userAddress);
-    // let ethBalance = await provider.getBalance(userAddress);
-    // setEthBal(ethBalance);
+    setProvider(ethersProvider);
+    let ethBalance = await ethersProvider.getBalance(userAddress);
+    setEthBal(ethers.utils.formatEther(ethBalance));
+    let ytkBalance = await getYTKContract().balanceOf(userAddress)
+    setYTKBal(ethers.utils.formatEther(ytkBalance))
+    console.log(ethers.utils.formatEther(ytkBalance));
     getAllTransactions();
   }
+
   // diconnect wallet
   const disconnectWallet = async () => {
     let disconnect = confirm("Are you sure you want to disconnect");
@@ -188,7 +216,7 @@ const TransactionContextProvider = ({ children }) => {
         ],
       });
 
-      console.log('sent response', sentResponse);
+      console.log("sent response", sentResponse);
 
       // await sentResponse.wait()
 
@@ -210,7 +238,7 @@ const TransactionContextProvider = ({ children }) => {
         await transactionsContract.getTransactionCount();
       setTransactionCount(transactionsCount.toNumber());
       // window.location.reload();
-      getAllTransactions()
+      getAllTransactions();
     } catch (e) {
       setLoading(false);
       console.log("error on send transaction " + e);
@@ -236,7 +264,10 @@ const TransactionContextProvider = ({ children }) => {
         loading,
         transactions,
         setTransactions,
-        // ethBal,
+        getYTKExchangeContract,
+        getYTKContract,
+        ethBal,
+        ytkBal
       }}
     >
       {children}

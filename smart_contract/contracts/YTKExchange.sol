@@ -30,7 +30,7 @@ contract YTKExchange {
     // Calculate the number of tokens to buy
     uint tokenAmount = msg.value * rate;
 
-    // Require that EthSwap has enough tokens
+    // Require that YTKExchange has enough tokens
     require(token.balanceOf(address(this)) >= tokenAmount);
 
     // Transfer tokens to the user
