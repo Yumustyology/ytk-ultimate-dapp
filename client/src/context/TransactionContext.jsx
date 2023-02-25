@@ -24,8 +24,9 @@ const TransactionContextProvider = ({ children }) => {
   const [provider, setProvider] = useState(null);
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [currency, setCurrency] = useState("eth");
   const [formData, setFormData] = useState({
-    addressTo: "0x61E777684790Cbc55deBE58359076C5DC0388056",
+    addressTo: "",
     amount: "",
     message: "",
   });
@@ -93,10 +94,6 @@ const TransactionContextProvider = ({ children }) => {
     return new ethers.Contract(ytkContractAddress, YTKAbi, signers);
   };
 
-
-
-
-
   const getAllTransactions = async () => {
     try {
       if (ethereum) {
@@ -157,8 +154,8 @@ const TransactionContextProvider = ({ children }) => {
     setProvider(ethersProvider);
     let ethBalance = await ethersProvider.getBalance(userAddress);
     setEthBal(ethers.utils.formatEther(ethBalance));
-    let ytkBalance = await getYTKContract().balanceOf(userAddress)
-    setYTKBal(ethers.utils.formatEther(ytkBalance))
+    let ytkBalance = await getYTKContract().balanceOf(userAddress);
+    setYTKBal(ethers.utils.formatEther(ytkBalance));
     console.log(ethers.utils.formatEther(ytkBalance));
     getAllTransactions();
   }
@@ -204,41 +201,71 @@ const TransactionContextProvider = ({ children }) => {
       const { addressTo, amount, message } = formData;
       const transactionsContract = getEthereumContract();
       const parsedAmount = ethers.utils.parseEther(amount);
-      const sentResponse = await ethereum.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: currentAccount,
-            to: addressTo,
-            gas: "0x5208", // 2100 GWEI
-            value: parsedAmount._hex,
-          },
-        ],
-      });
 
-      console.log("sent response", sentResponse);
+      if (currency === "eth") {
+        // const parsedAmount = ethers.utils.parseEther(amount);
+        const sentResponse = await ethereum.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: currentAccount,
+              to: addressTo,
+              gas: "0x5208", // 2100 GWEI
+              value: parsedAmount._hex,
+            },
+          ],
+        });
 
-      // await sentResponse.wait()
+        console.log("sent response", sentResponse);
 
-      const transactionHash = await transactionsContract.addTransferInfo(
-        addressTo,
-        parsedAmount,
-        message,
-        sentResponse
-      );
+        // await sentResponse.wait()
 
-      console.log(addressTo, parsedAmount, message);
+        const transactionHash = await transactionsContract.addTransferInfo(
+          addressTo,
+          parsedAmount,
+          message,
+          sentResponse
+        );
 
-      setLoading(true);
-      console.log(`Loading - ${transactionHash.hash}`);
-      await transactionHash.wait();
-      console.log(`Success - ${transactionHash.hash}`);
-      setLoading(false);
-      const transactionsCount =
-        await transactionsContract.getTransactionCount();
-      setTransactionCount(transactionsCount.toNumber());
-      // window.location.reload();
-      getAllTransactions();
+        setLoading(true);
+        console.log(`Loading - ${transactionHash.hash}`);
+        await transactionHash.wait();
+        console.log(`Success - ${transactionHash.hash}`);
+        setLoading(false);
+        const transactionsCount =
+          await transactionsContract.getTransactionCount();
+        setTransactionCount(transactionsCount.toNumber());
+
+        // refetch all transactions..
+
+        getAllTransactions();
+      } else {
+        console.log("transferring for ytk!!!");
+        try {
+          console.log('parsed amt ' + parsedAmount);
+          console.log('address to' + addressTo);
+          let YtkTransfer = await getYTKContract().transfer(
+            addressTo,
+            parsedAmount
+          );
+
+          const transactionHash = await transactionsContract.addTransferInfo(
+            addressTo,
+            parsedAmount,
+            message,
+            YtkTransfer.hash
+          );
+          setLoading(true);
+          console.log(`Loading - ${YtkTransfer.hash}`);
+          await transactionHash.wait();
+          console.log(`Success - ${YtkTransfer.hash}`);
+          setLoading(false);
+          // refetch all transactions..
+          getAllTransactions();
+        } catch (error) {
+          console.log(error);
+        }
+      }
     } catch (e) {
       setLoading(false);
       console.log("error on send transaction " + e);
@@ -267,7 +294,9 @@ const TransactionContextProvider = ({ children }) => {
         getYTKExchangeContract,
         getYTKContract,
         ethBal,
-        ytkBal
+        ytkBal,
+        currency,
+        setCurrency,
       }}
     >
       {children}

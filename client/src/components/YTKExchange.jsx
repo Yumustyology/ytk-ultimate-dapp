@@ -73,14 +73,21 @@ const YTKExchange = () => {
     if (!ethAmount | !ytkAmount) return;
     setExchangeLoading(true);
     console.log("wanna buy ytk ?");
-    const hashed = await exchangeContract.buyTokens({
-      from: currentAccount,
-      value: ethers.utils.parseEther(ethAmount),
-      gasLimit: 3e7,
-    });
-
-    console.log("hashed ", hashed);
+    try {
+      const hashed = await exchangeContract.buyTokens({
+        from: currentAccount,
+        value: ethers.utils.parseEther(ethAmount),
+        // gasLimit:'0x5208'
+        // gasLimit: 3e7,
+        gasLimit: 50000,
+      });
+  
+      console.log("hashed ", hashed.hash);
+      setExchangeLoading(false);
+    }catch(e) {
+      console.log('error on buy ytk'+ e);
     setExchangeLoading(false);
+    }
   };
 
   const sellYTK = async (ethAmount, ytkAmount) => {
@@ -88,7 +95,8 @@ const YTKExchange = () => {
     setExchangeLoading(true);
 
     console.log("wanna sell ytk ?");
-    const hashed = await ytkContract
+    try {
+      const hashed = await ytkContract
       .approve(ytkExchangeContractAddress, ytkAmount)
       .sendTransaction({ from: currentAccount });
     const sellYTKHashed = await exchangeContract
@@ -96,6 +104,11 @@ const YTKExchange = () => {
       .send({ from: this.state.account });
     setExchangeLoading(false);
     console.log(hashed, sellYTKHashed);
+    }catch(e) {
+      console.log('error on sell ytk'+ e);
+    setExchangeLoading(false);
+
+    }
   };
 
   const setExchangeTabFunc = async (tab) => {
@@ -175,18 +188,22 @@ const YTKExchange = () => {
 
 export default YTKExchange;
 
+
+
 // Buy and sell forms
 
 function BuyYTKForm({ exchangeLoading, buyYTK }) {
   const [calculatedYTKPrice, setCalculatedYTKPrice] = useState();
   const [ethAmt, setEthAmt] = useState();
-  const { connectWallet, currentAccount } = useContext(TransactionContext);
+  const { connectWallet, currentAccount,ethBal,ytkBal } = useContext(TransactionContext);
 
+  let etherBal = parseFloat(ethBal);
+  let YtkBal = parseFloat(ytkBal)
   return (
     <>
       <div className="w-full">
         <p className="flex justify-end items-center w-full text-[12px] text-[grey]">
-          Balance: 95.999
+          Balance: {etherBal.toFixed(4)}
         </p>
         <Input
           placeholder="Amount (ETH)"
@@ -209,7 +226,7 @@ function BuyYTKForm({ exchangeLoading, buyYTK }) {
       </div>
       <div className="w-full">
         <p className="flex items-center w-full text-[12px] text-[grey] justify-end">
-          Balance 250
+          Balance: {YtkBal.toFixed(4)}
         </p>
         <Input
           placeholder={`Amount (YTK)`}
@@ -256,13 +273,15 @@ function BuyYTKForm({ exchangeLoading, buyYTK }) {
 function SellYTKForm({ exchangeLoading, sellYTK }) {
   const [calculatedETHPrice, setCalculatedETHPrice] = useState();
   const [ytkAmt, setYtkAmt] = useState();
-  const { connectWallet, currentAccount } = useContext(TransactionContext);
+  const { connectWallet, currentAccount,ethBal,ytkBal } = useContext(TransactionContext);
+  let etherBal = parseFloat(ethBal);
+  let YtkBal = parseFloat(ytkBal)
 
   return (
     <>
       <div className="w-full">
         <p className="flex items-center w-full text-[12px] text-[grey] justify-end">
-          Balance 250
+          Balance: {YtkBal.toFixed(4)}
         </p>
         <Input
           placeholder={`Amount (YTK)`}
@@ -285,7 +304,7 @@ function SellYTKForm({ exchangeLoading, sellYTK }) {
       </div>
       <div className="w-full">
         <p className="flex justify-end items-center w-full text-[12px] text-[grey]">
-          Balance: 95.999
+          Balance: {etherBal.toFixed(4)}
         </p>
         <Input
           placeholder="Amount (ETH)"

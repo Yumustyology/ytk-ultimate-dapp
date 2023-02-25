@@ -47,11 +47,12 @@ const Welcome = () => {
     handleChange,
     loading,
     ethBal,
-    ytkBal
+    ytkBal,
+    currency,setCurrency
   } = useContext(TransactionContext);
 
   const [balVisible, setBalVisible] = useState(false);
-  const [currency, setCurrency] = useState("eth");
+
 
   const handleSubmit = (e) => {
     const { addressTo, amount, message } = formData;
