@@ -7,6 +7,10 @@ import {
   YTKExchangeAbi,
   ytkContractAddress,
   ytkExchangeContractAddress,
+  ytkNFTContractAddress,
+  ytkNFTContractAbi,
+  ytkNFTMarketplaceContractAddress,
+  ytkNFTMarketplaceContractAbi,
 } from "../utils/constants";
 import { ethers, providers } from "ethers";
 import Web3Modal from "web3modal";
@@ -63,10 +67,10 @@ const TransactionContextProvider = ({ children }) => {
 
   const { ethereum } = window;
 
+  const contractsProvider = new ethers.providers.Web3Provider(ethereum);
+
   const getEthereumContract = () => {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    // setProvider(provider);
-    const signers = provider.getSigner();
+    const signers = contractsProvider.getSigner();
     return new ethers.Contract(
       transactionContractAddress,
       TransactionsAbi,
@@ -75,11 +79,7 @@ const TransactionContextProvider = ({ children }) => {
   };
 
   const getYTKExchangeContract = () => {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    // setProvider(provider);
-    const signers = provider.getSigner();
-
-    console.log(new ethers.Contract(ytkContractAddress, YTKAbi, signers));
+    const signers = contractsProvider.getSigner();
     return new ethers.Contract(
       ytkExchangeContractAddress,
       YTKExchangeAbi,
@@ -88,10 +88,35 @@ const TransactionContextProvider = ({ children }) => {
   };
 
   const getYTKContract = () => {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    // setProvider(provider);
-    const signers = provider.getSigner();
+    const signers = contractsProvider.getSigner();
     return new ethers.Contract(ytkContractAddress, YTKAbi, signers);
+  };
+  const getYtkNftContract = () => {
+    const signers = contractsProvider.getSigner();
+    console.log(
+      new ethers.Contract(ytkNFTContractAddress, ytkNFTContractAbi, signers)
+    );
+    return new ethers.Contract(
+      ytkNFTContractAddress,
+      ytkNFTContractAbi,
+      signers
+    );
+  };
+
+  const getYtkNftTMarketplaceContract = () => {
+    const signers = contractsProvider.getSigner();
+    console.log(
+      new ethers.Contract(
+        ytkNFTMarketplaceContractAddress,
+        ytkNFTMarketplaceContractAbi,
+        signers
+      )
+    );
+    return new ethers.Contract(
+      ytkNFTMarketplaceContractAddress,
+      ytkNFTMarketplaceContractAbi,
+      signers
+    );
   };
 
   const getAllTransactions = async () => {
@@ -125,6 +150,7 @@ const TransactionContextProvider = ({ children }) => {
     }
   };
 
+  // checking if we have any transactions
   const checkIfTransactionsExists = async () => {
     try {
       if (ethereum) {
@@ -142,11 +168,60 @@ const TransactionContextProvider = ({ children }) => {
       throw new Error("No ethereum object");
     }
   };
+  let nftItems = [];
+  const getListedNfts = async () => {
+    console.log("marketplace contract ", getYtkNftTMarketplaceContract());
+    if (ethereum) {
+      let nftMarketplace = getYtkNftTMarketplaceContract();
+      try {
+        const itemCountResp = await nftMarketplace.itemCount();
+        // let itemCount = ethers.utils.formatEther(itemCountResp)
+        let itemCount = itemCountResp.toNumber()
+        console.log("item count ", itemCount);
+        // structuring the listed items to a useable array
+        if (!itemCount) return;
+        for (let i = 1; i <= itemCount; i++) {
+          const item = await nftMarketplace.items(i);
+
+          // get uri url from nft contract
+          const uri = await getYtkNftContract.tokenURI(item.tokenId);
+
+          // use uri to fetch the nft metadata stored on ipfs
+          const response = await fetch(uri);
+          const uriMetadata = await response.json();
+          // get total price of item (item price + fee)
+          const totalPrice = await nftMarketplace.getTotalPrice(item.itemId);
+
+          // Add nftItem to items array
+          nftItems.push({
+            totalPrice,
+            itemId: item.itemId,
+            seller: item.seller,
+            name: uriMetadata.name,
+            description: uriMetadata.description,
+            image: uriMetadata.image,
+          });
+        }
+
+        // let structuredlistedItems = listedItems.map((item) => ({
+        //   tokenId: item.itemId,
+        //   nft: item.nft,
+        //   price: item.price,
+        //   seller: item.seller,
+        //   isListed: item.listed,
+        // }));
+        console.log("listed nft ", items);
+      } catch (error) {
+        console.log("error on getting listed items ", error);
+      }
+    } else {
+      console.log("no ethereum object found");
+    }
+  };
 
   // connect user wallet
-  async function connectWallet() {
+  const connectWallet = async () => {
     const provider = await web3Modal.connect();
-
     addListeners(provider);
     const ethersProvider = new providers.Web3Provider(provider);
     const userAddress = await ethersProvider.getSigner().getAddress();
@@ -158,7 +233,7 @@ const TransactionContextProvider = ({ children }) => {
     setYTKBal(ethers.utils.formatEther(ytkBalance));
     console.log(ethers.utils.formatEther(ytkBalance));
     getAllTransactions();
-  }
+  };
 
   // diconnect wallet
   const disconnectWallet = async () => {
@@ -175,8 +250,6 @@ const TransactionContextProvider = ({ children }) => {
     }
   };
 
-  // provider && console.log(provider);
-
   async function addListeners(web3ModalProvider) {
     web3ModalProvider.on("accountsChanged", (accounts) => {
       window.location.reload();
@@ -191,9 +264,9 @@ const TransactionContextProvider = ({ children }) => {
   useEffect(() => {
     // connect automatically and without a popup if user is already connected
     if (web3Modal && web3Modal.cachedProvider) {
-      // connectWallet();
+      connectWallet();
     }
-  }, [web3Modal]);
+  }, []);
 
   const sendTransaction = async () => {
     try {
@@ -203,7 +276,6 @@ const TransactionContextProvider = ({ children }) => {
       const parsedAmount = ethers.utils.parseEther(amount);
 
       if (currency === "eth") {
-        // const parsedAmount = ethers.utils.parseEther(amount);
         const sentResponse = await ethereum.request({
           method: "eth_sendTransaction",
           params: [
@@ -217,8 +289,6 @@ const TransactionContextProvider = ({ children }) => {
         });
 
         console.log("sent response", sentResponse);
-
-        // await sentResponse.wait()
 
         const transactionHash = await transactionsContract.addTransferInfo(
           addressTo,
@@ -237,13 +307,10 @@ const TransactionContextProvider = ({ children }) => {
         setTransactionCount(transactionsCount.toNumber());
 
         // refetch all transactions..
-
         getAllTransactions();
       } else {
         console.log("transferring for ytk!!!");
         try {
-          console.log('parsed amt ' + parsedAmount);
-          console.log('address to' + addressTo);
           let YtkTransfer = await getYTKContract().transfer(
             addressTo,
             parsedAmount
@@ -277,6 +344,10 @@ const TransactionContextProvider = ({ children }) => {
     checkIfTransactionsExists();
   }, [transactionCount]);
 
+  useEffect(() => {
+    getListedNfts();
+  }, [currentAccount]);
+
   return (
     <TransactionContext.Provider
       value={{
@@ -297,6 +368,7 @@ const TransactionContextProvider = ({ children }) => {
         ytkBal,
         currency,
         setCurrency,
+  getYtkNftTMarketplaceContract,getYtkNftContract
       }}
     >
       {children}

@@ -9,17 +9,19 @@ import { FaPiggyBank, FaGamepad } from "react-icons/fa";
 import { RiExchangeDollarLine } from "react-icons/ri";
 import { TransactionContext } from "../context/TransactionContext";
 import { shortenAddress } from "../utils/shortenAddress";
+import { Link } from "react-router-dom";
 
-const NavbarItem = ({ title, classProps, icon }) => {
+const NavbarItem = ({ title, classProps, icon, anchor }) => {
   return (
-    <li className={`mx-4 cursor-pointer flex  items-center ${classProps}`}>
-      {icon} &nbsp;
-      <p className="">{title}</p>
-    </li>
+    <Link to={anchor}>
+      <li className={`mx-4 cursor-pointer flex  items-center ${classProps}`}>
+        {icon} &nbsp;
+        <p className="">{title}</p>
+      </li>
+    </Link>
   );
 };
 const Navbar = () => {
-
   const {
     connectWallet,
     currentAccount,
@@ -32,12 +34,15 @@ const Navbar = () => {
   return (
     <nav className="w-full flex md:justify-center justify-between items-center p-4">
       <div className="md:flex-[0.5] flex-initial justify-center items-center">
+        <Link to='/'>
         <img src={logo} alt="logo" className="w-32 cursor-pointer" />
+        </Link>
       </div>
       <ul className="text-white md:flex hidden list-none flex-row justify-between items-center flex-initial">
         {[
           {
             title: "Ecommerce",
+            anchor: "/",
             icon: (
               <BsFillBasketFill
                 fontSize={20}
@@ -47,6 +52,7 @@ const Navbar = () => {
           },
           {
             title: "Stake",
+            anchor: "/",
             icon: (
               <FaPiggyBank
                 fontSize={20}
@@ -62,6 +68,7 @@ const Navbar = () => {
           },
           {
             title: "Exchange",
+            anchor: "#exchange",
             icon: (
               <RiExchangeDollarLine
                 fontSize={20}
@@ -71,6 +78,7 @@ const Navbar = () => {
           },
           {
             title: "NFT Marketplace",
+            anchor: "/nft_page  ",
             icon: (
               <BsShop
                 fontSize={20}
@@ -79,7 +87,12 @@ const Navbar = () => {
             ),
           },
         ].map((item, index) => (
-          <NavbarItem key={item + index} title={item.title} icon={item.icon} />
+          <NavbarItem
+            key={item + index}
+            title={item.title}
+            icon={item.icon}
+            anchor={item.anchor}
+          />
         ))}
 
         {currentAccount ? (

@@ -11,6 +11,7 @@ import { TransactionContext } from "../context/TransactionContext";
 import { shortenAddress } from "../utils/shortenAddress";
 import { HiCurrencyYen } from "react-icons/hi";
 
+
 const commonStyles =
   "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
 
@@ -19,6 +20,7 @@ const Input = ({ placeholder, name, type, value, handleChange }) =>
     <input
       placeholder={placeholder}
       type={type}
+      min={type === 'number' ? '0' : 'false'}
       step="0.0001"
       value={value}
       onChange={(e) => handleChange(e, name)}
@@ -68,24 +70,25 @@ const Welcome = () => {
 // let n = num.toFixed(2);
 
   return (
-    <div className="flex w-full justify-center items-center md:flex-col">
+    <div className="flex w-full justify-between items-stretch md:flex-col">
       <div className="flex mf:flex-row flex-col items-start justify-between md:p-20 py-12 px-4">
         <div className="flex flex-1 justify-start flex-col mf:mr-10">
-          <h1 className="text-3xl sd:text-5xl text-white text-gradient py-1">
+          <h1 className="text-[3rem] sd:text-5xl text-white text-gradient py-1">
             Decentralized finance <br /> at your Crypto fingertips
           </h1>
           <p className="text-left mt-5 text-white font-light md:w-9/12 w-11/12 text-base">
             Explore the crypto world with us. Buy and sell cryptoicurrencies
-            easily here. <br />
+            easily here. 
+            <br />
             And do a lot more activities on the blockchain.
           </p>
           {!currentAccount && (
             <button
               type="button"
               onClick={connectWallet}
-              className="flex felx-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]"
+              className="flex felx-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd] w-60"
             >
-              <p className="text-white text-base font-semibold">
+              <p className="text-white text-base font-semibold ">
                 Connect Wallet
               </p>
             </button>

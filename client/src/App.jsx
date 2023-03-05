@@ -1,22 +1,21 @@
-import './init'
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import "./App.css";
-import { Footer, Navbar, Services, Transactions, Welcome } from "./components";
-import YTKExchange from './components/YTKExchange';
+import React from "react";
+import { BrowserRouter } from "react-router-dom";
+import Index from "./pages/Index";
+import NftLanding from "./pages/NftLanding";
+import { Routes, Route } from "react-router-dom";
+import ViewNFTInfo from "./pages/ViewNFTInfo";
+import MintNFTPage from "./pages/MintNFTPage";
 
 function App() {
   return (
-    <div className="min-h-screen">
-      <div className="gradient-bg-welcome">
-        <Navbar />  
-        <Welcome />
-      </div>
-      <Services />
-      <YTKExchange />
-      <Transactions />
-      <Footer />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route exact path="/" element={<Index />} />
+        <Route path="/nft_page" element={<NftLanding />} />
+        <Route path="/nft_info" element={<ViewNFTInfo />} />
+        <Route path="/mint_nft" element={<MintNFTPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

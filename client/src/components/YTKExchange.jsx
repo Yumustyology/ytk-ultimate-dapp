@@ -9,7 +9,6 @@ import {
   YTKExchangeAbi,
   ytkContractAddress,
   ytkExchangeContractAddress,
-  
 } from "../utils/constants";
 import { ethers } from "ethers";
 
@@ -62,12 +61,10 @@ const YTKExchange = () => {
   const { currentAccount, getYTKContract, getYTKExchangeContract } =
     useContext(TransactionContext);
 
-    
-
   let { ethereum } = window;
 
-  let exchangeContract = getYTKExchangeContract()
-  let ytkContract = getYTKContract()
+  let exchangeContract = getYTKExchangeContract();
+  let ytkContract = getYTKContract();
 
   const buyYTK = async (ethAmount, ytkAmount) => {
     if (!ethAmount | !ytkAmount) return;
@@ -81,33 +78,34 @@ const YTKExchange = () => {
         // gasLimit: 3e7,
         gasLimit: 50000,
       });
-  
+
       console.log("hashed ", hashed.hash);
       setExchangeLoading(false);
-    }catch(e) {
-      console.log('error on buy ytk'+ e);
-    setExchangeLoading(false);
+    } catch (e) {
+      console.log("error on buy ytk" + e);
+      setExchangeLoading(false);
     }
   };
 
   const sellYTK = async (ethAmount, ytkAmount) => {
     if (!ethAmount | !ytkAmount) return;
-    setExchangeLoading(true);
-
+    console.log(ytkAmount);
+    // setExchangeLoading(true);
+    let parsedYtkAmount = ethers.utils.parseEther(ytkAmount.toString());
+    console.log("parsed amt ",parsedYtkAmount);
     console.log("wanna sell ytk ?");
     try {
       const hashed = await ytkContract
-      .approve(ytkExchangeContractAddress, ytkAmount)
-      .sendTransaction({ from: currentAccount });
-    const sellYTKHashed = await exchangeContract
-      .sellTokens(ytkAmount)
-      .send({ from: this.state.account });
-    setExchangeLoading(false);
-    console.log(hashed, sellYTKHashed);
-    }catch(e) {
-      console.log('error on sell ytk'+ e);
-    setExchangeLoading(false);
-
+        .approve(ytkExchangeContractAddress, parsedYtkAmount)
+        // .sendTransaction({ from: currentAccount });
+      const sellYTKHashed = await exchangeContract
+        .sellTokens(parsedYtkAmount)
+        .send({ from: this.state.account });
+      setExchangeLoading(false);
+      console.log(hashed, sellYTKHashed);
+    } catch (e) {
+      console.log("error on sell ytk" + e);
+      setExchangeLoading(false);
     }
   };
 
@@ -123,7 +121,7 @@ const YTKExchange = () => {
     setExchangeTab(tab || "buy");
   }, []);
   return (
-    <div className="flex flex-col mf:flex-col w-full justify-center items-center gradient-bg-exchange">
+    <div className="flex flex-col mf:flex-col w-full justify-center items-center gradient-bg-exchange" id="exchange">
       <div className="flex mf:flex-row flex-col items-center justify-between md:p-20 py-12 px-4">
         <div className="flex-1 flex flex-col justify-start items-start">
           <h1 className="text-white text-3xl sm:text-5xl py-2 text-gradient">
@@ -188,17 +186,16 @@ const YTKExchange = () => {
 
 export default YTKExchange;
 
-
-
 // Buy and sell forms
 
 function BuyYTKForm({ exchangeLoading, buyYTK }) {
   const [calculatedYTKPrice, setCalculatedYTKPrice] = useState();
   const [ethAmt, setEthAmt] = useState();
-  const { connectWallet, currentAccount,ethBal,ytkBal } = useContext(TransactionContext);
+  const { connectWallet, currentAccount, ethBal, ytkBal } =
+    useContext(TransactionContext);
 
   let etherBal = parseFloat(ethBal);
-  let YtkBal = parseFloat(ytkBal)
+  let YtkBal = parseFloat(ytkBal);
   return (
     <>
       <div className="w-full">
@@ -273,9 +270,10 @@ function BuyYTKForm({ exchangeLoading, buyYTK }) {
 function SellYTKForm({ exchangeLoading, sellYTK }) {
   const [calculatedETHPrice, setCalculatedETHPrice] = useState();
   const [ytkAmt, setYtkAmt] = useState();
-  const { connectWallet, currentAccount,ethBal,ytkBal } = useContext(TransactionContext);
+  const { connectWallet, currentAccount, ethBal, ytkBal } =
+    useContext(TransactionContext);
   let etherBal = parseFloat(ethBal);
-  let YtkBal = parseFloat(ytkBal)
+  let YtkBal = parseFloat(ytkBal);
 
   return (
     <>
