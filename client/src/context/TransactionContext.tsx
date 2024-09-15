@@ -1,14 +1,28 @@
 import React, { useState, createContext, useEffect, ReactNode } from "react";
-import { ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 import Web3Modal from "web3modal";
 import { CoinbaseWalletSDK } from "@coinbase/wallet-sdk";
-import { transactionContractAddress, TransactionsAbi, ytkExchangeContractAddress, YTKExchangeAbi, ytkContractAddress, YTKAbi, ytkNFTContractAddress, ytkNFTContractAbi, ytkNFTMarketplaceContractAddress, ytkNFTMarketplaceContractAbi } from "@utils/constants";
+import {
+  transactionContractAddress,
+  TransactionsAbi,
+  ytkExchangeContractAddress,
+  YTKExchangeAbi,
+  ytkContractAddress,
+  YTKAbi,
+  ytkNFTContractAddress,
+  ytkNFTContractAbi,
+  ytkNFTMarketplaceContractAddress,
+  ytkNFTMarketplaceContractAbi,
+} from "@utils/constants";
+
 
 interface TransactionContextType {
   connectWallet?: () => void;
   disconnectWallet?: () => void;
   sendTransaction?: () => void;
   currentAccount?: string;
+  getYTKExchangeContract?: () => Contract;
+  getYTKContract?: () => Contract;
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>, name: string) => void;
   formData?: { addressTo: string; amount: string; message: string };
   setFormData?: React.Dispatch<
@@ -87,8 +101,6 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
   if (!ethereum) {
     throw new Error("Ethereum object not found");
   }
-
-  setEthereumAvailable(true);
 
   const contractsProvider = new ethers.providers.Web3Provider(ethereum);
 
@@ -212,7 +224,7 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
 
   const connectWallet = async () => {
     if (!ethereumAvailable) {
-      alert("Ethereum object not found");
+      console.log("Ethereum object not found");
       return;
     }
     try {
@@ -275,7 +287,7 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
   const sendTransaction = async () => {
     try {
       if (!ethereumAvailable) {
-        alert("Ethereum object not found");
+        console.log("Ethereum object not found");
         return;
       }
       setLoading(true);
@@ -299,16 +311,15 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   useEffect(() => {
-    // const { ethereum } = window as any;
-    // if (!ethereum) {
-    //   throw new Error("Ethereum object not found");
-    // }
-    // setEthereumAvailable(true);
-  }, [ethereumAvailable]);
+    const { ethereum } = window as any;
+    if (!ethereum) {
+      throw new Error("Ethereum object not found");
+    }
+    setEthereumAvailable(true);
+  }, []);
 
   if (ethereumAvailable) {
     console.log("Transaction .............");
-
     return (
       <TransactionContext.Provider
         value={{
@@ -316,6 +327,8 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
           disconnectWallet,
           sendTransaction,
           currentAccount,
+          getYTKExchangeContract,
+          getYTKContract,
           handleChange,
           formData,
           setFormData,
