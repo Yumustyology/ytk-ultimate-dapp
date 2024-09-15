@@ -1,0 +1,1 @@
+export const buttonClass = "flex felx-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd] w-60"

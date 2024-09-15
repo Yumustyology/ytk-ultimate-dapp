@@ -7,7 +7,7 @@ import ImageUploading from "react-images-uploading";
 import { create } from "ipfs-http-client";
 // import { create as ipfsHttpClient } from 'ipfs-http-client'
 // import ipfsClient from 'ipfs-http-client'
-import { ytkNFTMarketplaceContractAddress } from "../utils/constants";
+import { ytkNFTMarketplaceContractAddress } from "@utils/constants";
 // const client = ipfsHttpClient('https://ipfs.infura.io:5001/api/v0')
 
 const projectID = "2MbEBaAg9rQvrd1A0QpESsAqpax";

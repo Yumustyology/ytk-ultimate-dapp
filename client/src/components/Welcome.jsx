@@ -11,7 +11,6 @@ import { TransactionContext } from "../context/TransactionContext";
 import { shortenAddress } from "../utils/shortenAddress";
 import { HiCurrencyYen } from "react-icons/hi";
 
-
 const commonStyles =
   "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
 
@@ -55,7 +54,6 @@ const Welcome = () => {
 
   const [balVisible, setBalVisible] = useState(false);
 
-
   const handleSubmit = (e) => {
     const { addressTo, amount, message } = formData;
     e.preventDefault(); //Prevents reload after sending the form
@@ -68,7 +66,6 @@ const Welcome = () => {
     let etherBal = parseFloat(ethBal);
     let YtkBal = parseFloat(ytkBal)
 // let n = num.toFixed(2);
-
   return (
     <div className="flex w-full justify-between items-stretch md:flex-col">
       <div className="flex mf:flex-row flex-col items-start justify-between md:p-20 py-12 px-4">
@@ -200,7 +197,7 @@ const Welcome = () => {
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] rounded-full cursor-pointer"
+                className={buttonClass}
               >
                 Send Now
               </button>
@@ -208,7 +205,7 @@ const Welcome = () => {
               <button
                 type="button"
                 onClick={connectWallet}
-                className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] rounded-full cursor-pointer"
+                className={buttonClass}
               >
                 Connect Wallet
               </button>

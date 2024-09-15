@@ -4,12 +4,8 @@ import { TransactionContext } from "../context/TransactionContext";
 import { useContext, useEffect, useState } from "react";
 import { CgArrowsExchangeAltV } from "react-icons/cg";
 import Loader from "./Loader";
-import {
-  YTKAbi,
-  YTKExchangeAbi,
-  ytkContractAddress,
-  ytkExchangeContractAddress,
-} from "../utils/constants";
+import {  ytkExchangeContractAddress } from "@utils/constants";
+
 import { ethers } from "ethers";
 
 const Input = ({
