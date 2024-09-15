@@ -21,7 +21,7 @@
     "@emailjs/browser": "^3.6.2",
     "@portis/web3": "^4.0.7",
     "@testing-library/jest-dom": "^5.16.1",
-    "@testing-library/react": "^12.1.2",
+    "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "@types/react": "^16.9.50",
     "@types/react-dom": "^16.8.4",

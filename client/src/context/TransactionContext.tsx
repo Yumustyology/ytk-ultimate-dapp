@@ -211,7 +211,7 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
             seller: item.seller,
             name: uriMetadata.name,
             description: uriMetadata.description,
-            image: uriMetadata.image,
+            image: uriMetadata.image
           });
         }
 
