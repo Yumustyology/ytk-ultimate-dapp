@@ -61,7 +61,7 @@ const Welcome = () => {
     sendTransaction();
   };
 
-  console.log(typeof(ethBal));
+  // console.log(typeof(ethBal));
 
     let etherBal = parseFloat(ethBal);
     let YtkBal = parseFloat(ytkBal)

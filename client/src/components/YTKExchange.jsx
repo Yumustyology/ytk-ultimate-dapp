@@ -4,7 +4,7 @@ import { TransactionContext } from "../context/TransactionContext";
 import { useContext, useEffect, useState } from "react";
 import { CgArrowsExchangeAltV } from "react-icons/cg";
 import Loader from "./Loader";
-import {  ytkExchangeContractAddress } from "@utils/constants";
+import { ytkExchangeContractAddress } from "@utils/constants";
 
 import { ethers } from "ethers";
 
@@ -51,7 +51,7 @@ const Input = ({
 
 const YTKExchange = () => {
   const [exchangeLoading, setExchangeLoading] = useState(false);
-  const [exchangeTab, setExchangeTab] = useState("eth");
+  const [exchangeTab, setExchangeTab] = useState("buy");
   const [provider, setProvider] = useState(null);
   const [ytkBalance, setYTKBalance] = useState(0);
   const { currentAccount, getYTKContract, getYTKExchangeContract } =
@@ -88,12 +88,14 @@ const YTKExchange = () => {
     console.log(ytkAmount);
     // setExchangeLoading(true);
     let parsedYtkAmount = ethers.utils.parseEther(ytkAmount.toString());
-    console.log("parsed amt ",parsedYtkAmount);
+    console.log("parsed amt ", parsedYtkAmount);
     console.log("wanna sell ytk ?");
     try {
-      const hashed = await ytkContract
-        .approve(ytkExchangeContractAddress, parsedYtkAmount)
-        // .sendTransaction({ from: currentAccount });
+      const hashed = await ytkContract.approve(
+        ytkExchangeContractAddress,
+        parsedYtkAmount
+      );
+      // .sendTransaction({ from: currentAccount });
       const sellYTKHashed = await exchangeContract
         .sellTokens(parsedYtkAmount)
         .send({ from: this.state.account });
@@ -112,12 +114,23 @@ const YTKExchange = () => {
     setYTKBalance(ytkBalance);
   };
 
+  const swapTab = async () => {
+    if (exchangeTab == "buy") {
+      setExchangeTabFunc("sell");
+    } else {
+      setExchangeTabFunc("buy");
+    }
+  };
+
   useEffect(() => {
     let tab = window.localStorage.getItem("exchangeTab");
     setExchangeTab(tab || "buy");
   }, []);
   return (
-    <div className="flex flex-col mf:flex-col w-full justify-center items-center gradient-bg-exchange" id="exchange">
+    <div
+      className="flex flex-col mf:flex-col w-full justify-center items-center gradient-bg-exchange"
+      id="exchange"
+    >
       <div className="flex mf:flex-row flex-col items-center justify-between md:p-20 py-12 px-4">
         <div className="flex-1 flex flex-col justify-start items-start">
           <h1 className="text-white text-3xl sm:text-5xl py-2 text-gradient">
@@ -166,9 +179,14 @@ const YTKExchange = () => {
           </div>
           <>
             {exchangeTab === "buy" ? (
-              <BuyYTKForm exchangeLoading={exchangeLoading} buyYTK={buyYTK} />
+              <BuyYTKForm
+                swapTab={() => swapTab()}
+                exchangeLoading={exchangeLoading}
+                buyYTK={buyYTK}
+              />
             ) : (
               <SellYTKForm
+                swapTab={() => swapTab()}
                 exchangeLoading={exchangeLoading}
                 sellYTK={sellYTK}
               />
@@ -184,7 +202,7 @@ export default YTKExchange;
 
 // Buy and sell forms
 
-function BuyYTKForm({ exchangeLoading, buyYTK }) {
+function BuyYTKForm({ exchangeLoading, buyYTK, swapTab }) {
   const [calculatedYTKPrice, setCalculatedYTKPrice] = useState();
   const [ethAmt, setEthAmt] = useState();
   const { connectWallet, currentAccount, ethBal, ytkBal } =
@@ -213,6 +231,7 @@ function BuyYTKForm({ exchangeLoading, buyYTK }) {
       </div>
       <div>
         <CgArrowsExchangeAltV
+          onClick={swapTab}
           fontSize={30}
           className="text-white  cursor-pointer"
         />
@@ -263,7 +282,7 @@ function BuyYTKForm({ exchangeLoading, buyYTK }) {
   );
 }
 
-function SellYTKForm({ exchangeLoading, sellYTK }) {
+function SellYTKForm({ exchangeLoading, sellYTK, swapTab }) {
   const [calculatedETHPrice, setCalculatedETHPrice] = useState();
   const [ytkAmt, setYtkAmt] = useState();
   const { connectWallet, currentAccount, ethBal, ytkBal } =
@@ -292,6 +311,7 @@ function SellYTKForm({ exchangeLoading, sellYTK }) {
       </div>
       <div>
         <CgArrowsExchangeAltV
+          onClick={swapTab}
           fontSize={30}
           className="text-white  cursor-pointer"
         />
