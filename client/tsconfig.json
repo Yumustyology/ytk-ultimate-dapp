@@ -1,21 +1,22 @@
 {
-    "compilerOptions": {
-      "target": "es5",
-      "module": "commonjs",
-      "jsx": "react",
-      "strict": true,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "baseUrl": "./",
-      "paths": {
-        "@/*": ["./src/*"],
-        "@utils/*": ["./src/utils/*"],
-        "@components/*": ["./src/components/*"],
-        "@constants/*": ["./src/utils/constants/*"],
-        "@abi/*": ["./src/abi/*"]
-      },
-      "typeRoots": ["./node_modules/@types", "./src/types"],
-      "resolveJsonModule": true
-    }
+  "compilerOptions": {
+    "target": "esnext", 
+    "module": "esnext",
+    "jsx": "react-jsx", 
+    "strict": true,
+    "esModuleInterop": true, 
+    "skipLibCheck": true, 
+    "moduleResolution": "node", 
+    "baseUrl": "./", 
+    "paths": {
+      "@/*": ["./src/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@components/*": ["./src/components/*"],
+      "@constants/*": ["./src/utils/constants/*"],
+      "@abi/*": ["./src/abi/*"]
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"], 
+    "resolveJsonModule": true, 
+    "lib": ["dom", "dom.iterable", "esnext"] 
   }
-  
+}
