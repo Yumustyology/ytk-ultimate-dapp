@@ -7,7 +7,7 @@ import NFTListing from '../components/NFTListing'
 import '../styles/nftStyles.css'
 function NftLanding() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen transition">
       <div className="gradient-bg-welcome">
         <Navbar />
         <NFTHero />

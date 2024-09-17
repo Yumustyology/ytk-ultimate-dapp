@@ -7,7 +7,7 @@ import Navbar from "../components/Navbar";
 function ViewNFTInfo() {
   return (
     <div>
-      <div className="min-h-screen">
+      <div className="min-h-screen transition">
         <div className="gradient-bg-welcome">
           <Navbar />
           <div className="flex flex-col mf:flex-row w-full justify-center items-center p-10 pt-0">

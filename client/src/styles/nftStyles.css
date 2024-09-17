@@ -52,6 +52,9 @@
     padding: 0;
     outline: none;
     border: none;
+  }
+
+  .transition {
     -webkit-transition: .2s linear;
     transition: .2s linear;
   }

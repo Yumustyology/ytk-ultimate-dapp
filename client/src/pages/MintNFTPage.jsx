@@ -180,7 +180,7 @@ function MintNFTPage() {
 
   //   if (!currentAccount) return;
   return (
-    <div className="min-h-screen flex flex-col  w-full h-max gradient-bg-welcome">
+    <div className="min-h-screen flex flex-col  w-full h-max gradient-bg-welcome transition">
       <Navbar />
 
       {/* <h1 className="text-white ta-center text-3xl sm:text-5xl py-2 text-gradient">
