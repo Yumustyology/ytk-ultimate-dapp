@@ -1,7 +1,0 @@
-[build]
-  publish = "dist"
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-  Content-Type = "application/javascript"
