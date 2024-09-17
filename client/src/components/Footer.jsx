@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-
-import logo from "../../images/logo.png";
 import Container from "./Container";
+import { Link } from "react-router-dom";
+import { HiCurrencyYen } from "react-icons/hi";
 
 const Footer = () => {
   return (
@@ -9,7 +9,9 @@ const Footer = () => {
       <Container className="w-full flex md:justify-center justify-between items-center flex-col p-4">
         <div className="w-full flex sm:flex-row flex-col justify-between items-center my-4">
           <div className="flex flex-[0.5] justify-center items-center">
-            <img src={logo} alt="logo" className="w-32" />
+              <Link to="/" className="flex items-center text-2xl font-bold">
+                <HiCurrencyYen fontSize={35} color="#fff" /> &nbsp; YTK DAAP
+              </Link>
           </div>
           <div className="flex flex-1 justify-evenly items-center flex-wrap sm:mt-0 mt-5 w-full">
             {[
