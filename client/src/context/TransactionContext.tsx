@@ -88,20 +88,27 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
     },
   };
 
+  let web3Modal:Web3Modal;
+  let contractsProvider:any;
+
+  const { ethereum } = window as any;
+  
+  if (!ethereum) {
+    console.log("Ethereum object not found");
+  }
+
+  if(ethereum){
+
   const newWeb3Modal = new Web3Modal({
     cacheProvider: true,
     network: "mainnet",
     providerOptions,
   });
 
-  let web3Modal = newWeb3Modal;
-
-  const { ethereum } = window as any;
-  if (!ethereum) {
-    throw new Error("Ethereum object not found");
+  web3Modal = newWeb3Modal;
+  
+  contractsProvider = new ethers.providers.Web3Provider(ethereum);
   }
-
-  const contractsProvider = new ethers.providers.Web3Provider(ethereum);
 
   const getEthereumContract = () => {
     const signer = contractsProvider.getSigner();
@@ -323,7 +330,10 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     const { ethereum } = window as any;
-    if (!ethereum) throw new Error("Ethereum object not found");
+    if (!ethereum) {
+      console.log("Ethereum object not found");
+      return;
+    }
 
     setEthereumAvailable(true);
     const init = async () => {
@@ -339,9 +349,8 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   if (ethereumAvailable) {
-
     console.log("Transaction .............");
-    
+
     return (
       <TransactionContext.Provider
         value={{

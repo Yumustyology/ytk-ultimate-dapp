@@ -17,6 +17,7 @@ const EthereumNotAvailable = () => {
           href="https://metamask.io/download.html"
           target="_blank"
           rel="noopener noreferrer"
+          className='inline-block'
         >
           <button className={buttonClass}>
           Get MetaMask
