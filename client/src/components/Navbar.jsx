@@ -1,7 +1,6 @@
 import React, { useContext, useState } from "react";
 import { HiMenuAlt4 } from "react-icons/hi";
 import { AiOutlineClose } from "react-icons/ai";
-import logo from "../../images/logo.png";
 import { BsFillBasketFill, BsShop, BsCurrencyExchange } from "react-icons/bs";
 // import {IoGameControllerOutline} from "react-icons//io"
 import { GiShop } from "react-icons/gi";
@@ -76,7 +75,6 @@ const Navbar = () => {
     <nav className="w-full flex md:justify-center justify-between items-center p-4">
       <div className="md:flex-[0.5] flex-initial justify-center items-center">
         <Link to="/" className="flex items-center text-2xl font-bold">
-          {/* <img src={logo} alt="logo" className="w-32 cursor-pointer" /> */}
           <HiCurrencyYen fontSize={35} color="#fff" /> &nbsp; YTK DAAP
         </Link>
       </div>
