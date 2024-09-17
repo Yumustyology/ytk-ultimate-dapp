@@ -7,6 +7,7 @@ import DataTable from "react-data-table-component";
 import Loader from "./Loader";
 import TableLoader from "./TableLoader";
 import { customStyles } from "../utils/TableStyles";
+import Container from "./Container";
 
 const TransactionsCard = ({ transactions }) => {
   const [pending, setPending] = React.useState(true);
@@ -111,7 +112,8 @@ const Transactions = () => {
   const { transactions, currentAccount } = useContext(TransactionContext);
 
   return (
-    <div className="flex w-full justify-center items-center 2xl:px-20 gradient-bg-transactions">
+    <div className="gradient-bg-transactions">
+      <Container className="flex w-full justify-center items-center 2xl:px-20 ">
       <div className="flex flex-col md:p-12 py-12 px-4 w-[inherit] mb-12 mt-10">
 
       <div className="flex-1 flex flex-col justify-center items-center">
@@ -148,6 +150,7 @@ const Transactions = () => {
           </h3>
         )}
       </div>
+      </Container>
     </div>
   );
 };

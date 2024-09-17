@@ -1,15 +1,12 @@
 import React, { useContext, useState } from "react";
-import {
-  AiFillEye,
-  AiFillEyeInvisible,
-} from "react-icons/ai";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { SiEthereum } from "react-icons/si";
 import { BsInfoCircle } from "react-icons/bs";
 import { Loader } from "./";
 import { TransactionContext } from "../context/TransactionContext";
 import { shortenAddress } from "../utils/shortenAddress";
 import { HiCurrencyYen } from "react-icons/hi";
-import { buttonClass } from '@utils/buttonClass'
+import { buttonClass } from "@utils/buttonClass";
 
 const commonStyles =
   "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
@@ -19,7 +16,7 @@ const Input = ({ placeholder, name, type, value, handleChange }) =>
     <input
       placeholder={placeholder}
       type={type}
-      min={type === 'number' ? '0' : 'false'}
+      min={type === "number" ? "0" : "false"}
       step="0.0001"
       value={value}
       onChange={(e) => handleChange(e, name)}
@@ -49,7 +46,8 @@ const Welcome = () => {
     loading,
     ethBal,
     ytkBal,
-    currency,setCurrency
+    currency,
+    setCurrency,
   } = useContext(TransactionContext);
 
   const [balVisible, setBalVisible] = useState(false);
@@ -63,9 +61,9 @@ const Welcome = () => {
 
   // console.log(typeof(ethBal));
 
-    let etherBal = parseFloat(ethBal);
-    let YtkBal = parseFloat(ytkBal)
-// let n = num.toFixed(2);
+  let etherBal = parseFloat(ethBal);
+  let YtkBal = parseFloat(ytkBal);
+  // let n = num.toFixed(2);
   return (
     <div className="flex w-full justify-between items-stretch md:flex-col">
       <div className="flex mf:flex-row flex-col items-start justify-between md:p-20 py-12 px-4">
@@ -75,7 +73,7 @@ const Welcome = () => {
           </h1>
           <p className="text-left mt-5 text-white font-light md:w-9/12 w-11/12 text-base">
             Explore the crypto world with us. Buy and sell cryptoicurrencies
-            easily here. 
+            easily here.
             <br />
             And do a lot more activities on the blockchain.
           </p>
@@ -83,11 +81,9 @@ const Welcome = () => {
             <button
               type="button"
               onClick={connectWallet}
-              className="flex felx-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd] w-60"
+              className="flex felx-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd] w-60 text-white text-base font-semibold "
             >
-              <p className="text-white text-base font-semibold ">
-                Connect Wallet
-              </p>
+              Connect Wallet
             </button>
           )}
           <div className="grid sm:grid-cols-3 grid-cols-2 w-full mt-10">
@@ -96,12 +92,8 @@ const Welcome = () => {
               Security
             </div>
             <div className={`sm:rounded-tr-2xl ${commonStyles}`}>Stake</div>
-            <div className={`${commonStyles}`}>
-              ERC20
-            </div>
-            <div className={`sm:rounded-none  ${commonStyles}`}>
-            Ecommerce
-            </div>
+            <div className={`${commonStyles}`}>ERC20</div>
+            <div className={`sm:rounded-none  ${commonStyles}`}>Ecommerce</div>
             <div className={` ${commonStyles}`}>Ethereum</div>
             <div className={`sm:rounded-bl-2xl  ${commonStyles}`}>
               DEFI Exchange
@@ -144,7 +136,13 @@ const Welcome = () => {
                 </p>
                 <div className="flex items-center">
                   <div className="text-white font-semibold text-lg mt-1 flex">
-                    Balance: {balVisible ? currency === 'eth' ?  etherBal.toFixed(4) +' eth': YtkBal.toFixed(4) + ' ytk': "****"} &nbsp;
+                    Balance:{" "}
+                    {balVisible
+                      ? currency === "eth"
+                        ? etherBal.toFixed(4) + " eth"
+                        : YtkBal.toFixed(4) + " ytk"
+                      : "****"}{" "}
+                    &nbsp;
                   </div>
                   <div
                     onClick={() => setBalVisible(!balVisible)}
