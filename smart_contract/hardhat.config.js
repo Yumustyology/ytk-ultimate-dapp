@@ -1,4 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
+require('@nomiclabs/hardhat-waffle');
+require('dotenv').config();
+
 
 // /** @type import('hardhat/config').HardhatUserConfig */
 // module.exports = {
@@ -16,8 +19,11 @@ module.exports = {
   networks:{
     goerli:{
       url: "https://eth-goerli.g.alchemy.com/v2/vtinbB7a8c54eLbILjlyfeIdEtjNdGfc",
-      // accounts: ['2563aeb7bbf83bf180af4f88b619299c0eab94406fa3abfc2874911a0a7fee19']
-      accounts: ['0d22955e64465edb326e631f09eca3b2c4d3098e10c58da57374d3a4c83cbdf5']
-    }
+      accounts: [process.env.PRIVATE_KEY]
+    },
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL,  
+      accounts: [process.env.PRIVATE_KEY], 
+    },
   }
 }

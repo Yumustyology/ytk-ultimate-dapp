@@ -14,6 +14,7 @@ import {
   ytkNFTMarketplaceContractAddress,
   ytkNFTMarketplaceContractAbi,
 } from "@utils/constants";
+import { addTokenToWallet } from "@/utils/addTokenToWallet";
 
 interface TransactionContextType {
   connectWallet?: () => void;
@@ -88,29 +89,28 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
     },
   };
 
-  let web3Modal:Web3Modal;
-  let contractsProvider:any;
+  let web3Modal: Web3Modal;
+  let contractsProvider: any;
 
   const { ethereum } = window as any;
-  
+
   if (!ethereum) {
     console.log("Ethereum object not found");
   }
 
-  if(ethereum){
+  if (ethereum) {
+    const newWeb3Modal = new Web3Modal({
+      cacheProvider: true,
+      network: "mainnet",
+      providerOptions,
+    });
 
-  const newWeb3Modal = new Web3Modal({
-    cacheProvider: true,
-    network: "mainnet",
-    providerOptions,
-  });
+    web3Modal = newWeb3Modal;
 
-  web3Modal = newWeb3Modal;
-  
-  contractsProvider = new ethers.providers.Web3Provider(ethereum);
+    contractsProvider = new ethers.providers.Web3Provider(ethereum);
   }
 
-  const getEthereumContract = () => {
+  const getTransactionContract = () => {
     const signer = contractsProvider.getSigner();
     return new ethers.Contract(
       transactionContractAddress,
@@ -154,34 +154,41 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
   const getAllTransactions = async () => {
     try {
       if (ethereum) {
-        const transactionsContract = getEthereumContract();
+        const transactionsContract = getTransactionContract();
+        const availableTransactions = await transactionsContract.getAllTransactions();
 
-        const availableTransactions =
-          await transactionsContract.getAllTransactions();
-
-        const structuredTransactions = availableTransactions.map(
-          (transaction: any) => ({
+        // Check the structure of availableTransactions
+        if (!Array.isArray(availableTransactions) || availableTransactions.length === 0) {
+          console.log("No transactions found or invalid data format");
+          return;
+        }
+  
+        const structuredTransactions = availableTransactions.map((transaction: any) => {
+      
+          const amount = ethers.utils.formatEther(transaction.amount);
+          return {
             addressTo: transaction.reciever,
             addressFrom: transaction.sender,
-            timestamp: new Date(
-              transaction.timestamp.toNumber() * 1000
-            ).toLocaleString(),
+            timestamp: new Date(transaction.timestamp.toNumber() * 1000).toLocaleString(),
             message: transaction.description,
-            amount: parseInt(transaction.amount._hex) / 10 ** 18,
+            amount: parseFloat(amount), 
             hash: transaction.transactionHash,
-          })
-        );
+          };
+        });
+  
+  
         setTransactions(structuredTransactions.reverse());
       }
     } catch (error) {
       console.error("Error fetching transactions:", error);
     }
   };
+  
 
   const checkIfTransactionsExists = async () => {
     try {
       if (ethereum) {
-        const transactionsContract = getEthereumContract();
+        const transactionsContract = getTransactionContract();
         const currentTransactionCount =
           await transactionsContract.getTransactionCount();
 
@@ -229,41 +236,61 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const connectWallet = async () => {
-    if (!ethereumAvailable) {
-      console.log("Ethereum object not found");
-      return;
-    }
     try {
-      const provider = await web3Modal.connect();
-      if (!provider) {
-        console.error("Provider is not available");
+      const { ethereum } = window as any;
+      if (!ethereum) {
+        console.log("Ethereum object not found");
         return;
       }
+  
+      const provider = await web3Modal.connect();
+      console.log("Provider:", provider);
+  
+      if (!provider) {
+        console.log("Provider is not available");
+        return;
+      }
+  
       addListeners(provider);
       const ethersProvider = new ethers.providers.Web3Provider(provider);
       const userAddress = await ethersProvider.getSigner().getAddress();
+      
       setCurrentAccount(userAddress);
       setProvider(ethersProvider);
+  
       const ethBalance = await ethersProvider.getBalance(userAddress);
       setEthBal(ethers.utils.formatEther(ethBalance));
-
-      // Debugging output
-      console.log("User Address:", userAddress);
-
-      try {
-        const ytkBalance = await getYTKContract().balanceOf(userAddress);
-        setYTKBal(ethers.utils.formatEther(ytkBalance));
-        console.log("YTK Balance:", ytkBalance);
-      } catch (error) {
-        console.error("Error fetching YTK balance:", error);
+      
+      const ytkBalance = await getYTKContract().balanceOf(userAddress);
+      setYTKBal(ethers.utils.formatEther(ytkBalance));
+  
+      const ytkSymbol = await getYTKContract()?.symbol();
+      const ytkDecimals = (await getYTKContract()?.decimals()).toNumber();
+  
+      const tokenAdded = localStorage.getItem(`tokenAdded_${userAddress}_${ytkContractAddress}`);
+  
+      if (!tokenAdded) {
+        await addTokenToWallet(
+          ytkContractAddress,
+          ytkSymbol,
+          ytkDecimals.toString(),
+          "https://img.freepik.com/free-vector/money_53876-25500.jpg?size=626&ext=jpg&ga=GA1.1.1826747481.1725010098&semt=ais_hybrid"
+        );
+  
+        localStorage.setItem(`tokenAdded_${userAddress}_${ytkContractAddress}`, "true");
       }
-
-      getAllTransactions();
+  
+      try{
+        getAllTransactions();
+      }catch(e){
+        console.log("Failed to get all transactions",e);
+      }
     } catch (error) {
       console.error("Error connecting wallet:", error);
       throw new Error("Failed to connect wallet");
     }
   };
+  
 
   const disconnectWallet = async () => {
     if (!provider) {
@@ -296,12 +323,6 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
     });
   }
 
-  // useEffect(() => {
-  //   if (web3Modal && web3Modal.cachedProvider) {
-  //     connectWallet();
-  //   }
-  // }, []);
-
   const sendTransaction = async () => {
     try {
       if (!ethereumAvailable) {
@@ -309,25 +330,42 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
         return;
       }
       setLoading(true);
+      
       const { addressTo, amount, message } = formData;
-      const transactionsContract = getEthereumContract();
+      const transactionsContract = getTransactionContract();
+      const ytkContract = getYTKContract();
       const parsedAmount = ethers.utils.parseEther(amount);
-      const tx = await transactionsContract.addToBlockchain(
+      
+      const transferTx = await ytkContract?.transfer(addressTo, parsedAmount);
+     
+      const transactionTx = await transactionsContract.addTransferInfo(
         addressTo,
         parsedAmount,
-        message
+        message,
+        transferTx.hash
       );
-      await tx.wait();
-      setLoading(false);
-      getAllTransactions();
+     
+      await transferTx.wait();
+      await transactionTx.wait();
+      
       const ethBalance = await provider?.getSigner().getBalance();
       setEthBal(ethers.utils.formatEther(ethBalance || "0"));
+ 
+      const userAddress = await provider?.getSigner().getAddress();
+      const ytkBalance = await ytkContract.balanceOf(userAddress);
+      setYTKBal(ethers.utils.formatEther(ytkBalance));
+      
+      getAllTransactions();
+    
     } catch (error) {
-      console.error("Error sending transaction:", error);
-      throw new Error("Failed to send transaction");
+      console.log("Failed to send transaction", error);
+      throw new Error("Failed to send transaction: " + error);
+    } finally {
+      setLoading(false);
     }
   };
-
+  
+  
   useEffect(() => {
     const { ethereum } = window as any;
     if (!ethereum) {
@@ -340,17 +378,17 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
       try {
         if (web3Modal && web3Modal.cachedProvider) {
           await connectWallet();
+
         }
       } catch (error) {
         console.error("Initialization error:", error);
       }
     };
     init();
-  }, []);
+  }, [ethereumAvailable]);
 
   if (ethereumAvailable) {
     console.log("Transaction .............");
-
     return (
       <TransactionContext.Provider
         value={{

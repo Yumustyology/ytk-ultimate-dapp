@@ -8,19 +8,13 @@ import "./YTKNFT.sol";
 
 interface YTKNFTContractInterface {
     function mint(address recipient) external;
-
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) external payable;
-
+    function transferFrom(address _from, address _to, uint256 _tokenId) external payable;
     function customTokenAddressValue() external view returns (address);
 }
 
 contract YtkNftMarketplace is ReentrancyGuard {
-    address customTokenAddress;
-    address ytkNftAddress;
+    address public customTokenAddress;
+    address public ytkNftAddress;
     address payable public immutable owner; // the account that receives fees
     uint256 public feePercent; // the fee percentage on sales
     uint256 public itemCount;
@@ -69,7 +63,6 @@ contract YtkNftMarketplace is ReentrancyGuard {
         address indexed seller,
         address indexed buyer
     );
-
     event SoldNewItem(
         uint256 itemId,
         IERC721 nft,
@@ -78,7 +71,6 @@ contract YtkNftMarketplace is ReentrancyGuard {
         address indexed seller,
         address indexed buyer
     );
-
     event FeePercentageChanged(uint256 newFeePercentage);
 
     constructor(
@@ -88,7 +80,6 @@ contract YtkNftMarketplace is ReentrancyGuard {
     ) {
         owner = payable(msg.sender);
         feePercent = _feePercent;
-        // mintingFees['etherMint'] = 1e18 / 10;
         mintingFees["etherMint"] = 1000000000000000 wei; //0.001 ether;
         mintingFees["ytkMint"] = 100000000000000000 wei; // 0.1 ether;
         nft = YTKNFTContractInterface(_ytkNftAddress);
@@ -96,7 +87,6 @@ contract YtkNftMarketplace is ReentrancyGuard {
     }
 
     // ytk contract for payment interaction
-    // IERC20 customToken = IERC20(nft.customTokenAddressValue());
     IERC20 customToken = IERC20(customTokenAddress);
 
     modifier onlyOwner() {
@@ -279,66 +269,61 @@ contract YtkNftMarketplace is ReentrancyGuard {
             true
         );
         // Emit an event for the sale and update the seller and listed state
-        emit SoldNewItem(
+        emit Bought(
             item.itemId,
-            _ytkNft,
-            _tokenId,
+            address(item.nft),
+            item.tokenId,
             item.price,
             item.seller,
             msg.sender
         );
-        item.seller = payable(msg.sender);
+
+        // Mark the item as sold
         item.listed = false;
     }
 
-    function listWithYungToken(uint256 _tokenId) public {
-        Item storage item = items[_tokenId];
-        require(
-            msg.sender == item.seller,
-            "Only the owner can list the token for sale"
-        );
-        item.listed = true;
-    }
-
-    function reListWithYungToken(uint256 _tokenId, uint256 _tokenAmount)
-        public
-    {
-        require(_tokenAmount > 0, "Price must be greater than 0");
-        Item storage item = items[_tokenId];
-        require(
-            msg.sender == item.seller,
-            "Only the owner can list the token for sale"
-        );
-        item.listed = true;
-        item.price = _tokenAmount;
-    }
-
-    function unListWithItem(uint256 _tokenId) public {
-        require(_tokenId > 0, "Item not found in list");
-        Item storage item = items[_tokenId];
-        require(item.seller != address(0), "Item not found");
-        require(item.listed == true, "Item is already unlisted");
-        require(
-            msg.sender == item.seller,
-            "Only the owner can unlist the token from sale"
-        );
-        require(
-            msg.sender == item.seller,
-            "Only the owner can unlist the token from sale"
-        );
-        item.listed = false;
-    }
-
-    function buyWithEther(IERC721 _ytkNft, uint256 _tokenId) public payable {
-        // require(_ytkNft == nft, "Invalid Yung Token contract");
+    function buyWithEther(
+        IERC721 _ytkNft,
+        uint256 _tokenId
+    ) public payable nonReentrant {
+        // Get the total price of the item
         uint256 _totalPrice = getTotalPrice(_tokenId);
+
+        // Get the item and soldItem structs
         Item storage item = items[_tokenId];
-        uint256 price = item.price;
-        require(msg.value >= _totalPrice, "Sent Ether is not enough");
-        require(msg.value == price, "Sent Ether value does not match price");
-        payable(item.seller).transfer(price);
-        nft.transferFrom(item.seller, msg.sender, _tokenId);
-        //TODO still think of this to add adddress or tokenid
+        SoldItemStruct storage soldItem = soldItems[_tokenId];
+
+        // Check if the item is for sale
+        require(item.listed, "Item is not listed for sale");
+
+        // Check that the item exists and is listed for sale, and that it hasn't already been sold
+        require(
+            item.itemId > 0 && item.listed,
+            "Item doesn't exist or not listed for sale"
+        );
+        require(!soldItem.sold, "Item sold already");
+
+        // Check that the buyer is not the seller
+        require(item.seller != msg.sender, "Cannot buy your own item");
+
+        // Check that the buyer has sent enough Ether to cover the item price and fee
+        require(
+            msg.value >= _totalPrice,
+            "Insufficient Ether sent. Please send more."
+        );
+
+        // Transfer the item to the buyer
+        item.nft.transferFrom(address(this), msg.sender, item.tokenId);
+
+        // Calculate the marketplace fee and transfer it to the owner of the marketplace
+        uint256 marketplaceFee = msg.value - _totalPrice;
+        payable(owner).transfer(marketplaceFee);
+
+        // Transfer the sale price to the seller
+        payable(item.seller).transfer(_totalPrice);
+
+        soldItemCount++;
+
         soldItems[_tokenId] = SoldItemStruct(
             item.itemId,
             _ytkNft,
@@ -348,49 +333,31 @@ contract YtkNftMarketplace is ReentrancyGuard {
             msg.sender,
             true
         );
-        emit SoldNewItem(
-            itemCount,
-            _ytkNft,
-            _tokenId,
+
+        // Emit an event for the sale and update the seller and listed state
+        emit Bought(
+            item.itemId,
+            address(item.nft),
+            item.tokenId,
             item.price,
             item.seller,
             msg.sender
         );
-        // changing the seller to the new owner
-        item.seller = payable(msg.sender);
-        // update it's listed state to false
+
+        // Mark the item as sold
         item.listed = false;
     }
 
-    function listWithEther(uint256 _tokenId) public {
-        Item storage item = items[_tokenId];
-        require(
-            msg.sender == item.seller,
-            "Only the owner can list the token for sale"
-        );
-        item.listed = true;
+    function getItem(uint256 _itemId) public view returns (Item memory) {
+        return items[_itemId];
     }
 
-    function reListWitEther(uint256 _tokenId, uint256 _price) public {
-        require(_price > 0, "Price must be greater than 0");
-        Item storage item = items[_tokenId];
-        require(
-            msg.sender == item.seller,
-            "Only the owner can list the token for sale"
-        );
-        item.listed = true;
-        item.price = _price;
+    function getSoldItem(uint256 _itemId) public view returns (SoldItemStruct memory) {
+        return soldItems[_itemId];
     }
 
     function getTotalPrice(uint256 _itemId) public view returns (uint256) {
-        return ((items[_itemId].price * (100 + feePercent)) / 100);
-    }
-
-    function getItems() public view returns (items) {
-        return items;
-    }
-
-    function getSoldItems() public view returns (soldItems) {
-        return soldItems;
+        Item storage item = items[_itemId];
+        return item.price + (item.price * feePercent / 100);
     }
 }

@@ -33,6 +33,7 @@
     "babel-preset-stage-3": "6.24.1",
     "babel-register": "^6.26.0",
     "bitski": "^0.16.1",
+    "erc-20-abi": "^1.0.1",
     "ethers": "^5.6.9",
     "firebase": "^9.8.1",
     "fortmatic": "^2.4.0",
