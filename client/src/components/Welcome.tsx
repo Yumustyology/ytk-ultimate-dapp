@@ -324,7 +324,7 @@ const Welcome: React.FC = () => {
 
                 {tokenError && <p className="text-red-500">{tokenError}</p>}
                 {otherTokenInfo && (
-                  <p className="text-white">
+                  <p className="text-white text-sm">
                     Token: {otherTokenInfo.name} ({otherTokenInfo.symbol}) -{" "}
                     Balance: {parseFloat(otherTokenInfo.balance).toFixed(4)}{" "}
                     {otherTokenInfo.symbol}
