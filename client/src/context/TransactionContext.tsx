@@ -16,15 +16,15 @@ import {
 } from "@utils/constants";
 import { addTokenToWallet } from "@/utils/addTokenToWallet";
 
-interface TransactionContextType {
+export interface TransactionContextType {
   connectWallet?: () => void;
   disconnectWallet?: () => void;
-  sendTransaction?: () => void;
+  sendTransaction?: (type?:"eth"|"ytk") => void;
   currentAccount?: string;
   getYTKExchangeContract?: () => Contract;
   getYTKContract?: () => Contract;
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>, name: string) => void;
-  formData?: { addressTo: string; amount: string; message: string };
+  formData: { addressTo: string; amount: string; message: string };
   setFormData?: React.Dispatch<
     React.SetStateAction<{ addressTo: string; amount: string; message: string }>
   >;
@@ -35,7 +35,7 @@ interface TransactionContextType {
   currency?: string;
   setCurrency?: React.Dispatch<React.SetStateAction<string>>;
   loading?: boolean;
-  setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setTransactionCount?: React.Dispatch<React.SetStateAction<number>>;
   setTransactions?: React.Dispatch<React.SetStateAction<Array<any>>>;
   setEthBal?: React.Dispatch<React.SetStateAction<string>>;
@@ -244,7 +244,6 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
       }
   
       const provider = await web3Modal.connect();
-      console.log("Provider:", provider);
   
       if (!provider) {
         console.log("Provider is not available");
@@ -414,7 +413,6 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
   }, [ethereumAvailable]);
 
   if (ethereumAvailable) {
-    console.log("Transaction .............");
     return (
       <TransactionContext.Provider
         value={{

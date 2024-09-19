@@ -3,10 +3,8 @@ import { ethers } from 'ethers';
 import ERC20_ABI from "erc-20-abi"
 
 // Utility function to get ERC-20 token details, the contract instance, and the token address
-export async function getERC20TokenDetails(
-  tokenAddress: string,
-  userAddress: string
-) {
+
+export async function getERC20TokenDetails(tokenAddress:string, userAddress:string) {
   try {
     // Check if window.ethereum is available
     if (!window.ethereum) {
@@ -21,6 +19,12 @@ export async function getERC20TokenDetails(
 
     // Get the signer (the account interacting with the contract)
     const signer = provider.getSigner();
+
+    // Check if the contract exists at the given address
+    const code = await provider.getCode(tokenAddress);
+    if (code === '0x') {
+      throw new Error('No contract deployed at this address');
+    }
 
     // Create a contract instance using the token's address and the ERC-20 ABI
     const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);

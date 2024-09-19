@@ -78,8 +78,6 @@ const TransactionsCard = ({ transactions }) => {
     })),
   ];
 
-  console.log(data && data.length < 11 ? true : false);
-
   const paginationComponentOptions = {
     noRowsPerPage: data && data.length < 11 ? true : false,
   };
@@ -110,7 +108,6 @@ const TransactionsCard = ({ transactions }) => {
 
 const Transactions = () => {
   const { transactions, currentAccount } = useContext(TransactionContext);
-console.log("transactions ",transactions)
   return (
     <div className="gradient-bg-transactions">
       <Container className="flex w-full justify-center items-center 2xl:px-20 ">

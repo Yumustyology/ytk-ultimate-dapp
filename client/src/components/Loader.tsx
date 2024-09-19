@@ -15,7 +15,6 @@ const Loader = () => {
         color="#ddd"
         ariaLabel="watch-loading"
         wrapperStyle={{}}
-        wrapperClassName=""
         visible={true}
       />
     </button>

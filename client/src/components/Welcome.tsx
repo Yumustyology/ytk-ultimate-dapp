@@ -1,22 +1,49 @@
 import React, { useContext, useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { SiEthereum, SiPoly } from "react-icons/si";
-import { Loader } from "./";
-import { TransactionContext } from "../context/TransactionContext";
+import Loader  from "./Loader";
+import {
+  TransactionContext,
+  TransactionContextType,
+} from "../context/TransactionContext";
 import { shortenAddress } from "../utils/shortenAddress";
 import { HiCurrencyYen } from "react-icons/hi";
 import { buttonClass } from "@utils/buttonClass";
 import { CiBitcoin } from "react-icons/ci";
 import { getERC20TokenDetails } from "../utils/getERC20TokenDetails";
-import { erc20TokenAbi as ERC20_ABI } from "../utils/constants";
+import ERC20_ABI from "erc-20-abi";
 import { ethers } from "ethers";
-import {formatBalance} from "../utils/formatBalance";
+import { formatBalance } from "../utils/formatBalance";
 import cn from "../utils/cn";
 
-const commonStyles =
-  "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
+// Define types for token info
+interface TokenInfo {
+  balance: string;
+  name: string;
+  symbol: string;
+}
 
-const Input = ({ placeholder, name, type, value, handleChange, disabled }) =>
+// Define types for the input props
+interface InputProps {
+  placeholder: string;
+  name: string;
+  type: string;
+  value: string | number;
+  handleChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    name: string
+  ) => void;
+  disabled?: boolean;
+}
+
+const Input: React.FC<InputProps> = ({
+  placeholder,
+  name,
+  type,
+  value,
+  handleChange,
+  disabled,
+}) =>
   type !== "textarea" ? (
     <input
       disabled={disabled}
@@ -38,10 +65,17 @@ const Input = ({ placeholder, name, type, value, handleChange, disabled }) =>
     />
   );
 
-const Welcome = () => {
-  const changeCurrency = (e) => {
-    setCurrency(e.target.value);
-  };
+const commonStyles =
+  "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
+
+const Welcome: React.FC = () => {
+  const context = useContext<TransactionContextType>(TransactionContext as any);
+
+  if (!context) {
+    throw new Error(
+      "TransactionContext must be used within a TransactionProvider"
+    );
+  }
 
   const {
     connectWallet,
@@ -50,72 +84,83 @@ const Welcome = () => {
     sendTransaction,
     handleChange,
     loading,
+    setLoading,
     ethBal,
     ytkBal,
     currency,
     setCurrency,
     ethereumAvailable,
-  } = useContext(TransactionContext);
+  } = context;
 
   const [balVisible, setBalVisible] = useState(false);
   const [otherTokenAddress, setOtherTokenAddress] = useState("");
-  const [otherTokenBalance, setOtherTokenBalance] = useState(null);
-  const [tokenError, setTokenError] = useState(null);
+  const [otherTokenInfo, setOtherTokenInfo] = useState<TokenInfo | null>(null);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
-  const handleCurrencyChange = (e) => {
-    setCurrency(e.target.value);
-    setOtherTokenAddress("");
-    setOtherTokenBalance(null);
-    setTokenError(null);
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    const  {addressTo,amount,message} = formData
+    const { addressTo, amount, message } = formData;
     if (currency === "others" && otherTokenAddress && currentAccount) {
       try {
+        setLoading(true);
+        const erc20 = await getERC20TokenDetails(otherTokenAddress, currentAccount);
     
-        const erc20 = await getERC20TokenDetails(
-          otherTokenAddress,
-          currentAccount
+        const { balance, decimals, name, symbol, contract, tokenAddress } = erc20;
+    
+        console.log("Balance:", balance);
+        console.log("Balance Type:", typeof balance);
+    
+        // Ensure balance is correctly formatted using the token's decimals
+        const formattedBalance = ethers.utils.parseUnits(balance.toString(), decimals);
+    
+        setOtherTokenInfo({ balance: formattedBalance.toString(), name, symbol });
+    
+        // Parse the amount to be transferred as per the token's decimals
+        const transferAmount = ethers.utils.parseUnits(amount.toString(), decimals);
+    
+        // Perform the token transfer - remove the 'value' field
+        const transaction = await contract.transfer(
+            addressTo,
+            transferAmount,
+            {
+              gasLimit: ethers.utils.hexlify(8000000),
+            }
         );
-
-        const { balance, decimals, name, symbol, contract, tokenAddress } =
-          erc20;
-
-        setOtherTokenBalance(ethers.utils.formatUnits(balance, decimals));
-      
-        // Proceed with transaction after verification
-        const transferAmount = ethers.utils.parseUnits(
-          amount.toString(),
-          "ether"
-        );
-        const transaction = await contract.transferEther(
-          addressTo,
-          transferAmount,
-          {
-            value: transferAmount.toString(),
-            gasLimit: ethers.utils.hexlify(8000000),
-          }
-        );
+    
         await transaction.wait();
-      } catch (error) {
+    } catch (error) {
         setTokenError("Invalid token address or not an ERC-20 token.");
         console.log(error);
-      }
-    } else if(currency == "eth" || currency == "matic"){
+    }
+    finally{
+      setLoading(false);
+    }
+    
+    } else if (currency == "eth" || currency == "matic") {
       // For ETH or MATIC transactions, send as normal
-      sendTransaction("eth")
-    }else {
+      sendTransaction!("eth");
+    } else {
       // For YTK transactions, send as normal
       if (!addressTo || !amount || !message) return;
-      sendTransaction();
+      sendTransaction!();
     }
   };
 
-  const checkOtherTokenBalance = async () => {
+    const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCurrency!(e.target.value);
+    setOtherTokenAddress("");
+    setOtherTokenInfo(null);
+    setTokenError(null);
+  };
+
+  const checkOtherTokenInfo = async (otherTokenAddress: string) => {
     if (!otherTokenAddress) return;
+    setTokenError(null);
     try {
+      if (!ethers.utils.isAddress(otherTokenAddress)) {
+        throw new Error("Invalid Ethereum address.");
+      }
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const tokenContract = new ethers.Contract(
         otherTokenAddress,
@@ -125,17 +170,19 @@ const Welcome = () => {
 
       const balance = await tokenContract.balanceOf(currentAccount);
       const decimals = await tokenContract.decimals();
+      const name = await tokenContract.name();
+      const symbol = await tokenContract.symbol();
+
       const formattedBalance = ethers.utils.formatUnits(balance, decimals);
 
-      setOtherTokenBalance(formattedBalance);
-      setTokenError(null); 
+      setOtherTokenInfo({ balance: formattedBalance, name, symbol });
+      setTokenError(null);
     } catch (error) {
-      setOtherTokenBalance(null);
+      setOtherTokenInfo(null);
       setTokenError("Invalid token address or not an ERC-20 token.");
-      console.error(error);
+      console.log("Error fetching token info:", error);
     }
   };
-
 
   return (
     <div className="flex w-full justify-between items-stretch md:flex-col">
@@ -167,7 +214,7 @@ const Welcome = () => {
             <div className={`sm:rounded-tr-2xl ${commonStyles}`}>Stake</div>
             <div className={`${commonStyles}`}>ERC20</div>
             <div className={`sm:rounded-none  ${commonStyles}`}>Ecommerce</div>
-            <div className={` ${commonStyles}`}>Ethereum</div>
+            <div className={`${commonStyles}`}>Ethereum</div>
             <div className={`sm:rounded-bl-2xl  ${commonStyles}`}>
               DEFI Exchange
             </div>
@@ -197,15 +244,17 @@ const Welcome = () => {
                   <select
                     className={cn(
                       "w-[65px] h-[30px] py-0 px-1 bg-transparent rounded-[5px] text-slate-500 border-gray-500",
-                      currency == "others" && "w-[89px]"
+                      currency === "others" && "w-[89px]"
                     )}
                     value={currency}
                     onChange={handleCurrencyChange}
                   >
-                    <option value="eth">ETH </option>
+                    <option value="eth">ETH</option>
                     <option value="ytk">YTK</option>
                     <option value="matic">MATIC</option>
-                    <option value="others">Others</option>
+                    <option value="others">
+                      {otherTokenInfo?.symbol ?? "Others"}
+                    </option>
                   </select>
                 </p>
               </div>
@@ -221,20 +270,26 @@ const Welcome = () => {
                     Balance:{" "}
                     {balVisible ? (
                       currency === "eth" ? (
-                        <span>{ethBal ? formatBalance(ethBal) : "0.0000"} ETH</span>
-                      ) : currency === "ytk" ? (
-                        <span>{ytkBal ? formatBalance(ytkBal) : "0.0000"} YTK</span>
-                      ) : otherTokenBalance ? (
                         <span>
-                          {otherTokenBalance ? parseFloat(otherTokenBalance).toFixed(4) : "0.0000"} TOKEN
+                          {ethBal ? formatBalance(parseInt(ethBal)) : "0.0000"}{" "}
+                          ETH
+                        </span>
+                      ) : currency === "ytk" ? (
+                        <span>
+                          {ytkBal ? formatBalance(parseInt(ytkBal)) : "0.0000"}{" "}
+                          YTK
+                        </span>
+                      ) : otherTokenInfo ? (
+                        <span>
+                          {parseFloat(otherTokenInfo.balance).toFixed(4)}{" "}
+                          {otherTokenInfo.symbol}
                         </span>
                       ) : (
                         "N/A"
                       )
                     ) : (
                       "****"
-                    )}{" "}
-                    &nbsp;
+                    )}
                   </div>
 
                   <div
@@ -251,6 +306,7 @@ const Welcome = () => {
               </div>
             </div>
           </div>
+
           <div className="p-5 sm:w-96 w-full flex flex-col justify-start items-center blue-glassmorphism">
             {currency === "others" && (
               <>
@@ -262,17 +318,17 @@ const Welcome = () => {
                   value={otherTokenAddress}
                   handleChange={async (e) => {
                     setOtherTokenAddress(e.target.value);
-                      console.log(await getERC20TokenDetails(
-                      e.target.value,
-                      currentAccount
-                      ))
-                    // checkOtherTokenBalance(e.target.value);
+                    checkOtherTokenInfo(e.target.value);
                   }}
                 />
 
                 {tokenError && <p className="text-red-500">{tokenError}</p>}
-                {otherTokenBalance && (
-                  <p className="text-white">Balance: {otherTokenBalance}</p>
+                {otherTokenInfo && (
+                  <p className="text-white">
+                    Token: {otherTokenInfo.name} ({otherTokenInfo.symbol}) -{" "}
+                    Balance: {parseFloat(otherTokenInfo.balance).toFixed(4)}{" "}
+                    {otherTokenInfo.symbol}
+                  </p>
                 )}
               </>
             )}
@@ -282,28 +338,25 @@ const Welcome = () => {
               placeholder="Address To"
               name="addressTo"
               type="text"
-              handleChange={handleChange}
-              value={formData.addressTo}
+              handleChange={handleChange as any}
+              value={formData?.addressTo ?? ""}
             />
-
             <Input
               disabled={!ethereumAvailable || !currentAccount}
-              placeholder={`Amount (${
-                currency === "others" ? "TOKEN" : currency.toUpperCase()
-              })`}
+              placeholder="Amount (ETH/YTK)"
               name="amount"
               type="number"
-              value={formData.amount}
-              handleChange={handleChange}
+              handleChange={handleChange as any}
+              value={formData?.amount ?? ""}
             />
 
             <Input
               disabled={!ethereumAvailable || !currentAccount}
-              placeholder="Enter Payment Description or message."
+              placeholder="Enter Message"
               name="message"
               type="textarea"
-              value={formData.message}
-              handleChange={handleChange}
+              handleChange={handleChange as any}
+              value={formData?.message ?? ""}
             />
 
             <div className="h-[1px] w-full bg-gray-400 my-2" />
@@ -330,7 +383,6 @@ const Welcome = () => {
           </div>
         </div>
       </div>
-      {/* wel */}
     </div>
   );
 };
