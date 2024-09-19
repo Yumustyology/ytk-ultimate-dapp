@@ -323,47 +323,73 @@ const TransactionContextProvider: React.FC<{ children: ReactNode }> = ({
     });
   }
 
-  const sendTransaction = async () => {
+  const sendTransaction = async (type:"ytk"|"eth" = 'ytk') => {
     try {
       if (!ethereumAvailable) {
         console.log("Ethereum object not found");
         return;
       }
+  
       setLoading(true);
-      
+  
       const { addressTo, amount, message } = formData;
+      const parsedAmount = ethers.utils.parseEther(amount); 
+
+      const signer = provider?.getSigner();
+      const userAddress = await signer?.getAddress();
       const transactionsContract = getTransactionContract();
-      const ytkContract = getYTKContract();
-      const parsedAmount = ethers.utils.parseEther(amount);
-      
-      const transferTx = await ytkContract?.transfer(addressTo, parsedAmount);
-     
-      const transactionTx = await transactionsContract.addTransferInfo(
-        addressTo,
-        parsedAmount,
-        message,
-        transferTx.hash
-      );
-     
-      await transferTx.wait();
-      await transactionTx.wait();
-      
-      const ethBalance = await provider?.getSigner().getBalance();
-      setEthBal(ethers.utils.formatEther(ethBalance || "0"));
- 
-      const userAddress = await provider?.getSigner().getAddress();
-      const ytkBalance = await ytkContract.balanceOf(userAddress);
-      setYTKBal(ethers.utils.formatEther(ytkBalance));
-      
+  
+      if (type === 'ytk') {
+        const ytkContract = getYTKContract(); 
+        const transferTx = await ytkContract?.transfer(addressTo, parsedAmount);
+       
+        const transactionTx = await transactionsContract.addTransferInfo(
+          addressTo,
+          parsedAmount,
+          message,
+          transferTx.hash
+        );
+  
+        await transferTx.wait();
+        await transactionTx.wait();
+  
+        const ethBalance = await signer?.getBalance();
+        setEthBal(ethers.utils.formatEther(ethBalance || "0"));
+  
+        const ytkBalance = await ytkContract.balanceOf(userAddress);
+        setYTKBal(ethers.utils.formatEther(ytkBalance));
+  
+      } else if (type === 'eth') {
+        const ethTransferTx = await signer?.sendTransaction({
+          to: addressTo,
+          value: parsedAmount,
+        });
+
+        console.log("ETH Transfer Tx Hash:", ethTransferTx?.hash);
+  
+        const transactionTx = await transactionsContract.addTransferInfo(
+          addressTo,
+          parsedAmount,
+          message,
+          ethTransferTx?.hash
+        );
+  
+        await ethTransferTx?.wait();
+        await transactionTx.wait();
+  
+        const ethBalance = await signer?.getBalance();
+        setEthBal(ethers.utils.formatEther(ethBalance || "0"));
+      }
+  
       getAllTransactions();
-    
+  
     } catch (error) {
       console.log("Failed to send transaction", error);
       throw new Error("Failed to send transaction: " + error);
     } finally {
       setLoading(false);
     }
-  };
+  };  
   
   
   useEffect(() => {

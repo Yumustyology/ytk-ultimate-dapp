@@ -68,7 +68,7 @@ const TransactionsCard = ({ transactions }) => {
       hash: shortenAddress(transaction.hash),
       etherScanUrl: (
         <a
-          href={`https://goerli.etherscan.io/tx/${transaction.hash}`}
+          href={`https://sepolia.etherscan.io/tx/${transaction.hash}`}
           className="bg-[#2952e3] p-2 py-10 h-10 rounded-full cursor-pointer hover:bg-[#2546bd]"
           target="_blank"
         >

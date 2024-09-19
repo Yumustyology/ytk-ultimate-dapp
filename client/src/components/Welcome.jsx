@@ -71,7 +71,7 @@ const Welcome = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    const  {addressTo,amount,message} = formData
     if (currency === "others" && otherTokenAddress && currentAccount) {
       try {
     
@@ -87,26 +87,27 @@ const Welcome = () => {
       
         // Proceed with transaction after verification
         const transferAmount = ethers.utils.parseUnits(
-          formData.amount.toString(),
+          amount.toString(),
           "ether"
         );
         const transaction = await contract.transferEther(
-          fromData.addressTo,
+          addressTo,
           transferAmount,
           {
             value: transferAmount.toString(),
             gasLimit: ethers.utils.hexlify(8000000),
           }
         );
-        const transactionResp = await transaction.wait();
-        console.log("transactionResp ", transactionResp);
+        await transaction.wait();
       } catch (error) {
         setTokenError("Invalid token address or not an ERC-20 token.");
         console.log(error);
       }
-    } else {
-      // For ETH, MATIC, or YTK transactions, send as normal
-      const { addressTo, amount, message } = formData;
+    } else if(currency == "eth" || currency == "matic"){
+      // For ETH or MATIC transactions, send as normal
+      sendTransaction("eth")
+    }else {
+      // For YTK transactions, send as normal
       if (!addressTo || !amount || !message) return;
       sendTransaction();
     }
@@ -127,7 +128,7 @@ const Welcome = () => {
       const formattedBalance = ethers.utils.formatUnits(balance, decimals);
 
       setOtherTokenBalance(formattedBalance);
-      setTokenError(null); // Clear any previous error
+      setTokenError(null); 
     } catch (error) {
       setOtherTokenBalance(null);
       setTokenError("Invalid token address or not an ERC-20 token.");
@@ -201,7 +202,7 @@ const Welcome = () => {
                     value={currency}
                     onChange={handleCurrencyChange}
                   >
-                    <option value="eth">ETH</option>
+                    <option value="eth">ETH </option>
                     <option value="ytk">YTK</option>
                     <option value="matic">MATIC</option>
                     <option value="others">Others</option>
